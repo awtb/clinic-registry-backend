@@ -1,0 +1,37 @@
+name: clinic-registry-dev
+services:
+  app:
+    container_name: clinic_registry_devcontainer
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - .:/workspace:cached
+      - .git:/workspace/.git
+    environment:
+      DB_PASSWORD: db
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: db
+      DB_USER: user
+      SERVING_PORT: ${SERVING_PORT:-8000}
+    depends_on:
+      - db
+    ports:
+      - "${SERVING_PORT:-8000}:${SERVING_PORT:-8000}"
+      - "8089:8089"
+    command: ["uv", "run", "scripts/dev.sh"]
+
+  db:
+    container_name: clinic_registry_devcontainer_db
+    image: postgres:17
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+
+volumes:
+  postgres_data:
