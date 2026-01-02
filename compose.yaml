@@ -3,6 +3,29 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    depends_on:
+      - db
+    command: [ 'uv', 'run', 'scripts/prod.sh' ]
+    ports:
+      - ${SERVING_PORT:-8000}:${SERVING_PORT:-8000}
+    environment:
+      DB_USER: ${DB_USER:-clinic_user}
+      DB_PASSWORD: ${DB_PASSWORD:-clinic_registry}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-clinic_registry}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_HASHING_ALGORITHM: ${JWT_HASHING_ALGORITHM:-HS256}
+      JWT_ACCESS_TOKEN_EXPIRATION_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES:-30}
+      JWT_REFRESH_TOKEN_EXPIRATION_MINUTES: ${JWT_REFRESH_TOKEN_EXPIRATION_MINUTES:-80}
+      LOGGING_LVL: ${LOGGING_LVL:-}
+      LOGGING_FMT: ${LOGGING_FMT:-}
+      CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-}
+      CORS_ALLOW_HEADERS: ${CORS_ALLOW_HEADERS:-}
+      CORS_ALLOW_METHODS: ${CORS_ALLOW_METHODS:-}
+      CORS_ALLOW_CREDENTIALS: ${CORS_ALLOW_CREDENTIALS:-}
 
   db:
     image: postgres:17
+    volumes:
+      - pgdata:/var/lib/postgresql/data
