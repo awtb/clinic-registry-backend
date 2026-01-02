@@ -15,8 +15,8 @@ class AuthHelper:
         self,
         secret_key: str,
         hashing_algorithm: str,
-        access_token_exp: int,
-        refresh_token_exp: int,
+        access_token_exp: int = 30,
+        refresh_token_exp: int = 30,
     ) -> None:
         self._secret_key = secret_key
         self._hashing_algorithm = hashing_algorithm
