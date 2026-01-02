@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from ulid import ULID
 
+from clinic_registry.core.dto.user import UserDTO
 from clinic_registry.core.enums.user import UserRole
 
 
@@ -47,3 +48,10 @@ class User(BaseModel):
         DateTime(), nullable=False, default=datetime.now
     )
     password_hash: Mapped[str] = mapped_column(String(), nullable=False)
+
+    def to_dto(self) -> UserDTO:
+        return UserDTO(
+            id=self.id,
+            email=self.email,
+            password_hash=self.password_hash,
+        )
