@@ -14,6 +14,7 @@ from alembic import op
 import sqlalchemy as sa
 from datetime import datetime
 
+from clinic_registry.settings import Settings
 from clinic_registry.core.enums.user import UserRole
 from clinic_registry.core.helpers.auth import AuthHelper
 
@@ -34,8 +35,8 @@ ROOT_USER_LAST_NAME = ("User",)
 
 def upgrade() -> None:
     auth_helper = AuthHelper(
-        secret_key=app_settings.secret_key,
-        hashing_algorithm=app_settings.hashing_algorithm,
+        secret_key=app_settings.jwt_secret_key,
+        hashing_algorithm=app_settings.jwt_hashing_algorithm,
     )
 
     users_table = op.create_table(
