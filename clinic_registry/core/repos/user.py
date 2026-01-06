@@ -23,6 +23,14 @@ class UserRepository(BaseRepository):
         await self._session.commit()
         return model.to_dto()
 
+    async def get_user_by_id(self, user_id: str) -> UserDTO | None:
+        stmt = select(User).where(User.id == user_id)
+
+        res = await self._session.execute(stmt)
+        first_row = res.scalars().first()
+
+        return first_row.to_dto() if first_row else None
+
     async def get_user_by_email(self, email: str) -> UserDTO | None:
         stmt = select(User).where(User.email == email)
 

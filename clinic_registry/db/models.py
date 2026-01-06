@@ -54,4 +54,7 @@ class User(BaseModel):
             id=self.id,
             email=self.email,
             password_hash=self.password_hash,
+            first_name=self.first_name,
+            last_name=self.last_name,
+            role=self.role,
         )

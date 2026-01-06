@@ -14,12 +14,16 @@ def start_app(
     workers: int = Option(
         default=1,
     ),
+    host: str = Option(
+        default="0.0.0.0",
+    ),
 ) -> None:
     uvicorn.run(
         "clinic_registry.api.app:build_app",
         reload=reload,
         workers=workers,
         factory=True,
+        host=host,
     )
 
 
