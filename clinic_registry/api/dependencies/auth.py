@@ -1,8 +1,6 @@
 import logging
-from typing import Annotated
 
 from fastapi import Depends
-from fastapi.params import Cookie
 from fastapi.security import OAuth2PasswordBearer
 
 from clinic_registry.api.dependencies.common import get_settings
@@ -36,15 +34,10 @@ def get_auth_service(
 
 
 async def get_current_user(
-    access_token: Annotated[
-        str | None,
-        Cookie(
-            validation_alias="access_token",
-        ),
-    ] = None,
+    access_token: str = Depends(oauth2_scheme),
     auth_service: AuthService = Depends(get_auth_service),
 ) -> CurrentUserDTO:
-    logger.debug("Token from cookie %s", access_token)
+    logger.debug("Token from header %s", access_token)
 
     if not access_token:
         raise NotAllowedError("Access token not provided")
