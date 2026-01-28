@@ -5,9 +5,6 @@ services:
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
-    volumes:
-      - .:/workspace:cached
-      - .git:/workspace/.git
     environment:
       DB_PASSWORD: db
       DB_HOST: db
@@ -17,10 +14,12 @@ services:
       SERVING_PORT: ${SERVING_PORT:-8000}
     depends_on:
       - db
+    volumes:
+      - ..:/workspace:cached
     ports:
       - "${SERVING_PORT:-8000}:${SERVING_PORT:-8000}"
       - "8089:8089"
-    command: ["uv", "run", "scripts/dev.sh"]
+    command: ["sleep", "infinity"]
 
   db:
     container_name: clinic_registry_devcontainer_db
