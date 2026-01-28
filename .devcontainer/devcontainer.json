@@ -2,13 +2,14 @@
   "name": "Clinic registry Dev Environment",
   "dockerComposeFile": "compose.yaml",
   "service": "app",
+  "workspaceFolder": "/workspace",
   "customizations": {
     "jetbrains": {
       "pycharm": {
         "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
         "workspaceFolder": "/workspace"
       }
-    },
+    }
   },
   "remoteUser": "pycharm",
   "features": {
@@ -28,5 +29,5 @@
   },
   "postCreateCommand": "uv run pre-commit install && uv run alembic upgrade head",
   "initializeCommand": "echo 'Starting dev container setup...'",
-  "onCreateCommand": "echo 'Dev container created successfully!'",
+  "onCreateCommand": "echo 'Dev container created successfully!'"
 }
