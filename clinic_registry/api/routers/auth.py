@@ -24,7 +24,9 @@ async def login(
         email=form_data.username.lower(),
         password=form_data.password,
     )
-    return await auth_service.login(dto)
+    response = await auth_service.login(dto)
+
+    return response
 
 
 @router.post("/register", summary="Register user")

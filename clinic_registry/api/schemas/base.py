@@ -18,3 +18,8 @@ class Page(BaseSchema, Generic[T]):
     total_items: int
     page: int
     items: list[T]
+
+
+class PaginationParams(BaseModel):
+    page: int
+    page_size: int

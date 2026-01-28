@@ -1,6 +1,7 @@
 from sqlalchemy import exists
 from sqlalchemy import select
 
+from clinic_registry.core.dto.base import PageDTO
 from clinic_registry.core.dto.user import UserDTO
 from clinic_registry.core.repos.base import BaseRepository
 from clinic_registry.db.models import User
@@ -11,7 +12,19 @@ class UserRepository(BaseRepository):
         stmt = select(exists(User).where(User.email == email))
         res = await self._session.execute(stmt)
 
-        return res.scalars().first()
+        return bool(res.scalars().first())
+
+    async def fetch_all(self, page: int, page_size: int) -> PageDTO[UserDTO]:
+        stmt = select(User).order_by(User.created_at.desc())
+
+        needed_page = await self._fetch(
+            query=stmt,
+            page=page,
+            page_size=page_size,
+            mapper_fn=lambda model: model.to_dto(),
+        )
+
+        return needed_page
 
     async def create_user(self, email: str, password_hash: str) -> UserDTO:
         model = User(

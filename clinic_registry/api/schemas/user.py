@@ -8,3 +8,11 @@ class ProfileResponse(BaseSchema):
     last_name: str
     email: str
     role: UserRole
+
+
+class UserResponse(BaseSchema):
+    id: str
+    first_name: str
+    last_name: str
+    email: str
+    role: UserRole
