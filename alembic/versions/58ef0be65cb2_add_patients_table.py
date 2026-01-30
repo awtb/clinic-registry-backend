@@ -25,7 +25,7 @@ def upgrade() -> None:
     sa.Column('id', sa.String(), nullable=False),
     sa.Column('first_name', sa.String(), nullable=False),
     sa.Column('last_name', sa.String(), nullable=False),
-    sa.Column('date_of_birth', sa.DateTime(), nullable=False),
+    sa.Column('date_of_birth', sa.Date(), nullable=False),
     sa.Column('passport_number', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),

@@ -39,4 +39,5 @@ async def get_users(
         page=pagination_params.page,
         page_size=pagination_params.page_size,
     )
+
     return users_page
