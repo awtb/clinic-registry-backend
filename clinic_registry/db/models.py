@@ -12,6 +12,7 @@ from ulid import ULID
 
 from clinic_registry.core.dto.patient import PatientDTO
 from clinic_registry.core.dto.user import UserDTO
+from clinic_registry.core.enums.patient import PatientGender
 from clinic_registry.core.enums.user import UserRole
 
 
@@ -88,9 +89,12 @@ class Patient(BaseModel):
     )
     notes: Mapped[str] = mapped_column(String(), nullable=True)
     phone_number: Mapped[str] = mapped_column(String(), nullable=True)
+    gender: Mapped[PatientGender] = mapped_column(String(), nullable=False)
+    last_visit: Mapped[date] = mapped_column(Date(), nullable=True)
 
     def to_dto(self) -> PatientDTO:
         return PatientDTO(
+            gender=self.gender,
             id=self.id,
             first_name=self.first_name,
             last_name=self.last_name,
@@ -100,4 +104,5 @@ class Patient(BaseModel):
             notes=self.notes,
             created_at=self.created_at,
             updated_at=self.updated_at,
+            last_visit=self.last_visit,
         )
