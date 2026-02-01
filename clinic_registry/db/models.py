@@ -71,7 +71,7 @@ class Patient(BaseModel):
         String(),
         nullable=False,
         primary_key=True,
-        default=ULID,
+        default=lambda: str(ULID()),
     )
     first_name: Mapped[str] = mapped_column(String(), nullable=False)
     last_name: Mapped[str] = mapped_column(String(), nullable=False)
