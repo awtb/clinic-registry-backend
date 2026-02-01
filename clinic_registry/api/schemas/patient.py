@@ -1,4 +1,5 @@
 from datetime import date
+from datetime import datetime
 
 from clinic_registry.api.schemas.base import BaseSchema
 from clinic_registry.core.dto.patient import PatientCreateDTO
@@ -8,10 +9,10 @@ from clinic_registry.core.enums.patient import PatientGender
 class PatientCreateSchema(BaseSchema):
     first_name: str
     last_name: str
-    date_of_birth: date
+    birth_date: date
     passport_number: str
     phone_number: str | None
-    notes: str | None
+    notes: str | None = None
     gender: PatientGender
 
     def to_dto(self) -> PatientCreateDTO:
@@ -19,7 +20,7 @@ class PatientCreateSchema(BaseSchema):
             gender=self.gender,
             first_name=self.first_name,
             last_name=self.last_name,
-            date_of_birth=self.date_of_birth,
+            date_of_birth=self.birth_date,
             passport_number=self.passport_number,
             phone_number=self.phone_number,
             notes=self.notes,
@@ -34,7 +35,7 @@ class PatientResponse(BaseSchema):
     passport_number: str
     phone_number: str | None
     notes: str | None
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
     gender: PatientGender
     last_visit: date | None

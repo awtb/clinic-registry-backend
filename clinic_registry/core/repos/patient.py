@@ -6,6 +6,7 @@ from sqlalchemy import update
 
 from clinic_registry.core.dto.base import PageDTO
 from clinic_registry.core.dto.patient import PatientDTO
+from clinic_registry.core.enums.patient import PatientGender
 from clinic_registry.core.repos.base import BaseRepository
 from clinic_registry.db.models import Patient
 
@@ -17,6 +18,7 @@ class PatientRepository(BaseRepository):
         last_name: str,
         date_of_birth: date,
         passport_number: str,
+        gender: PatientGender,
         notes: str | None = None,
         phone_number: str | None = None,
     ) -> PatientDTO:
@@ -27,6 +29,7 @@ class PatientRepository(BaseRepository):
             passport_number=passport_number,
             notes=notes,
             phone_number=phone_number,
+            gender=gender,
         )
 
         self._session.add(patient_obj)

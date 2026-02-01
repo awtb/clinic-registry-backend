@@ -31,6 +31,7 @@ class PatientService:
         dto: PatientCreateDTO,
     ) -> PatientDTO:
         return await self._patient_repo.create_patient(
+            gender=dto.gender,
             first_name=dto.first_name,
             last_name=dto.last_name,
             date_of_birth=dto.date_of_birth,
