@@ -27,7 +27,7 @@ class User(BaseModel):
         String(),
         nullable=False,
         primary_key=True,
-        default=ULID,
+        default=lambda: str(ULID()),
     )
     username: Mapped[str] = mapped_column(
         String(),
