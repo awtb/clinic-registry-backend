@@ -61,7 +61,7 @@ class User(BaseModel):
             password_hash=self.password_hash,
             first_name=self.first_name,
             last_name=self.last_name,
-            role=self.role,
+            role=UserRole(self.role),
         )
 
 
