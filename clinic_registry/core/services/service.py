@@ -1,10 +1,11 @@
 from clinic_registry.core.dto.base import PageDTO
+from clinic_registry.core.dto.user import CurrentUserDTO
 from clinic_registry.core.dto.user import UserCreateDTO
 from clinic_registry.core.dto.user import UserDTO
 from clinic_registry.core.enums.user import UserRole
 from clinic_registry.core.errors.auth import UserAlreadyExistsError
-from clinic_registry.core.errors.common import NotFoundError
 from clinic_registry.core.errors.common import NotAllowedError
+from clinic_registry.core.errors.common import NotFoundError
 from clinic_registry.core.helpers.auth import AuthHelper
 from clinic_registry.core.repos.user import UserRepository
 
@@ -35,14 +36,9 @@ class UserService:
 
     async def create_user(
         self,
-        current_user_id: str,
+        current_user: CurrentUserDTO,
         dto: UserCreateDTO,
     ) -> UserDTO:
-        current_user = await self._repo.get_user_by_id(current_user_id)
-
-        if current_user is None:
-            raise NotFoundError("User not found")
-
         if current_user.role != UserRole.admin:
             raise NotAllowedError("Only admins can create users")
 

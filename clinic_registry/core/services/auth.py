@@ -64,6 +64,7 @@ class AuthService:
         return self._auth_helper.create_token_pair(
             user_id=user.id,
             email=user.email,
+            role=user.role,
         )
 
     def get_current_user(self, token: str) -> CurrentUserDTO:
@@ -74,6 +75,7 @@ class AuthService:
         user = CurrentUserDTO(
             email=token_payload["email"],
             id=token_payload["uid"],
+            role=UserRole(token_payload["role"]) or UserRole.user,
         )
 
         return user

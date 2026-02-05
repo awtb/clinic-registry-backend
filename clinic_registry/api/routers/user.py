@@ -58,7 +58,7 @@ async def create_user(
 ):
     dto = data.to_dto()
     created_user = await user_service.create_user(
-        current_user_id=current_user.id,
+        current_user=current_user,
         dto=dto,
     )
 

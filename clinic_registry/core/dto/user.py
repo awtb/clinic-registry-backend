@@ -29,3 +29,4 @@ class UserCreateDTO(BaseDTO):
 class CurrentUserDTO(BaseDTO):
     id: str
     email: str
+    role: UserRole

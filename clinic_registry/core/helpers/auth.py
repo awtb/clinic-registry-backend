@@ -6,6 +6,7 @@ import bcrypt
 import jwt
 
 from clinic_registry.core.dto.auth import TokenPairDTO
+from clinic_registry.core.enums.user import UserRole
 from clinic_registry.core.errors.auth import ExpiredTokenError
 from clinic_registry.core.errors.auth import InvalidAuthorizationScheme
 
@@ -36,16 +37,19 @@ class AuthHelper:
         self,
         user_id: str,
         email: str,
+        role: UserRole = UserRole.user,
     ) -> TokenPairDTO:
         access_token = self._create_jwt_token(
             scope="access",
             user_id=user_id,
             email=email,
+            role=role,
         )
         refresh_token = self._create_jwt_token(
             scope="refresh",
             user_id=user_id,
             email=email,
+            role=role,
         )
 
         return TokenPairDTO(
@@ -58,8 +62,9 @@ class AuthHelper:
         scope: Literal["access", "refresh"],
         user_id: str,
         email: str,
+        role: UserRole = UserRole.user,
     ) -> str:
-        payload = self._build_token_payload(scope, user_id, email)
+        payload = self._build_token_payload(scope, user_id, email, role)
         token = jwt.encode(
             payload,
             self._secret_key,
@@ -88,11 +93,13 @@ class AuthHelper:
         scope: Literal["access", "refresh"],
         user_id: str,
         email: str,
+        role: UserRole = UserRole.user,
     ) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "uid": user_id,
             "scope": scope,
             "email": email,
+            "role": role.value,
         }
 
         if scope == "access":
