@@ -1,5 +1,34 @@
+from pydantic import EmailStr
+from pydantic import Field
+from pydantic import field_validator
+
 from clinic_registry.api.schemas.base import BaseSchema
+from clinic_registry.core.dto.user import UserCreateDTO
 from clinic_registry.core.enums.user import UserRole
+
+
+class UserCreateSchema(BaseSchema):
+    username: str
+    first_name: str
+    last_name: str
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
+    role: UserRole = Field(default=UserRole.user)
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        return value.lower()
+
+    def to_dto(self) -> UserCreateDTO:
+        return UserCreateDTO(
+            username=self.username,
+            first_name=self.first_name,
+            last_name=self.last_name,
+            email=str(self.email),
+            password=self.password,
+            role=self.role,
+        )
 
 
 class ProfileResponse(BaseSchema):

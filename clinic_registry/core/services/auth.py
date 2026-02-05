@@ -3,6 +3,7 @@ from clinic_registry.core.dto.auth import RegistrationRequestDTO
 from clinic_registry.core.dto.auth import TokenPairDTO
 from clinic_registry.core.dto.user import CurrentUserDTO
 from clinic_registry.core.dto.user import UserDTO
+from clinic_registry.core.enums.user import UserRole
 from clinic_registry.core.errors.auth import IncorrectEmailOrPasswordError
 from clinic_registry.core.errors.auth import UserAlreadyExistsError
 from clinic_registry.core.helpers.auth import AuthHelper
@@ -25,8 +26,11 @@ class AuthService:
         already_exists = await self._user_repo.user_exists(
             data.email,
         )
+        username_exists = await self._user_repo.username_exists(
+            data.username,
+        )
 
-        if already_exists:
+        if already_exists or username_exists:
             raise UserAlreadyExistsError()
 
         hashed_password = self._auth_helper.hash_password(
@@ -34,8 +38,12 @@ class AuthService:
         )
 
         created_user = await self._user_repo.create_user(
-            data.email,
-            hashed_password,
+            username=data.username,
+            first_name=data.first_name,
+            last_name=data.last_name,
+            email=data.email,
+            password_hash=hashed_password,
+            role=UserRole.user,
         )
 
         return created_user

@@ -13,6 +13,9 @@ class TokenSchema(BaseSchema):
 
 
 class RegistrationRequestSchema(BaseSchema):
+    username: str
+    first_name: str
+    last_name: str
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
 
@@ -23,6 +26,9 @@ class RegistrationRequestSchema(BaseSchema):
 
     def to_dto(self) -> RegistrationRequestDTO:
         return RegistrationRequestDTO(
+            username=self.username,
+            first_name=self.first_name,
+            last_name=self.last_name,
             email=str(self.email),
             password=self.password,
         )

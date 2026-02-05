@@ -56,6 +56,7 @@ class User(BaseModel):
     def to_dto(self) -> UserDTO:
         return UserDTO(
             id=self.id,
+            username=self.username,
             email=self.email,
             password_hash=self.password_hash,
             first_name=self.first_name,

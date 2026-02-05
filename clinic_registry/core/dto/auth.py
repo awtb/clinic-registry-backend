@@ -10,6 +10,9 @@ class RegistrationResponseDTO(BaseDTO):
 
 @dataclass
 class RegistrationRequestDTO(BaseDTO):
+    username: str
+    first_name: str
+    last_name: str
     email: str
     password: str
 
