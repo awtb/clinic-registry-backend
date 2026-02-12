@@ -14,7 +14,7 @@ def get_records_repo(
     return MedicalRecordRepository(session=session)
 
 
-def get_medical_record_service(
+def get_record_service(
     records_repo: MedicalRecordRepository = Depends(get_records_repo),
     patient_repo: PatientRepository = Depends(get_patient_repo),
 ) -> MedicalRecordService:

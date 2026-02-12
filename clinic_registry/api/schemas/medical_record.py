@@ -4,7 +4,7 @@ from clinic_registry.api.schemas.base import BaseSchema
 from clinic_registry.core.dto.medical_record import MedicalRecordCreateDTO
 
 
-class MedicalRecordCreateSchema(BaseSchema):
+class RecordCreateSchema(BaseSchema):
     patient_id: str
     diagnosis: str
     treatment: str
@@ -21,7 +21,7 @@ class MedicalRecordCreateSchema(BaseSchema):
         )
 
 
-class MedicalRecordResponse(BaseSchema):
+class RecordResponse(BaseSchema):
     id: str
     patient_id: str
     diagnosis: str
