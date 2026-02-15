@@ -1,4 +1,8 @@
+from datetime import datetime
+from typing import Any
+
 from sqlalchemy import select
+from sqlalchemy import update
 
 from clinic_registry.core.dto.base import PageDTO
 from clinic_registry.core.dto.medical_record import MedicalRecordDTO
@@ -56,3 +60,29 @@ class MedicalRecordRepository(BaseRepository):
         )
 
         return needed_page
+
+    async def update_medical_record(
+        self,
+        medical_record: MedicalRecordDTO,
+        diagnosis: str | None = None,
+        treatment: str | None = None,
+        procedures: str | None = None,
+        chief_complaint: str | None = None,
+    ) -> None:
+        stmt = update(MedicalRecord).where(
+            MedicalRecord.id == medical_record.id,
+        )
+
+        values: dict[str, Any] = {"updated_at": datetime.now()}
+        if diagnosis is not None:
+            values["diagnosis"] = diagnosis
+        if treatment is not None:
+            values["treatment"] = treatment
+        if procedures is not None:
+            values["procedures"] = procedures
+        if chief_complaint is not None:
+            values["chief_complaint"] = chief_complaint
+
+        stmt = stmt.values(**values)
+        await self._session.execute(stmt)
+        await self._session.commit()
