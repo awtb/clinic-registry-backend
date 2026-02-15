@@ -3,6 +3,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import create_async_engine
 
@@ -57,6 +58,25 @@ async def lifespan(app_instance: FastAPI) -> AsyncGenerator:
     await remove_engine(app_instance)
 
 
+def setup_middlewares(app_instance: FastAPI) -> None:
+    settings: Settings = load_settings(app_instance)
+
+    app_instance.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_allow_origins,
+        allow_methods=settings.cors_allow_methods,
+        allow_headers=settings.cors_allow_headers,
+        allow_credentials=settings.cors_allow_credentials,
+    )
+
+
+def setup_routers(app_instance: FastAPI) -> None:
+    app_instance.include_router(auth_router)
+    app_instance.include_router(users_router)
+    app_instance.include_router(patients_router)
+    app_instance.include_router(records_router)
+
+
 def build_app() -> FastAPI:
     app = FastAPI(
         title="Clinic Registry API",
@@ -65,9 +85,7 @@ def build_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    app.include_router(auth_router)
-    app.include_router(users_router)
-    app.include_router(patients_router)
-    app.include_router(records_router)
+    setup_middlewares(app)
+    setup_routers(app)
 
     return app
