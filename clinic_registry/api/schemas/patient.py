@@ -39,3 +39,11 @@ class PatientResponse(BaseSchema):
     updated_at: datetime
     gender: PatientGender
     last_visit: date | None
+
+
+class PatientUpdateRequest(BaseSchema):
+    first_name: str | None = None
+    last_name: str | None = None
+    date_of_birth: date | None = None
+    gender: PatientGender | None = None
+    passport_number: str | None = None
