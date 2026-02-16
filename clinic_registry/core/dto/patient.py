@@ -30,3 +30,14 @@ class PatientDTO(BaseDTO):
     created_at: datetime
     updated_at: datetime
     last_visit: date | None
+
+
+@dataclass
+class PatientUpdateDTO:
+    patient_for_update: PatientDTO
+    first_name: str | None = None
+    gender: PatientGender | None = None
+    last_name: str | None = None
+    date_of_birth: date | None = None
+    phone_number: str | None = None
+    notes: str | None = None
