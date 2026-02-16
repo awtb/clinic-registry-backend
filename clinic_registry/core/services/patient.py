@@ -34,10 +34,11 @@ class PatientService:
             request.patient_for_update,
             first_name=request.first_name,
             last_name=request.last_name,
-            date_of_birth=request.date_of_birth,
+            date_of_birth=request.birth_date,
             passport=request.passport_number,
             notes=request.notes,
             phone=request.phone_number,
+            gender=request.gender,
         )
 
         patient = await self.get_patient(

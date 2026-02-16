@@ -47,6 +47,7 @@ class PatientRepository(BaseRepository):
         passport: str | None = None,
         notes: str | None = None,
         phone: str | None = None,
+        gender: PatientGender | None = None,
     ) -> None:
         stmt = update(Patient).where(Patient.id == patient.id)
 
@@ -63,6 +64,8 @@ class PatientRepository(BaseRepository):
             values["notes"] = notes
         if phone is not None:
             values["phone_number"] = phone
+        if gender is not None:
+            values["gender"] = gender.value
 
         stmt = stmt.values(**values)
         await self._session.execute(stmt)

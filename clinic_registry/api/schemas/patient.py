@@ -33,7 +33,7 @@ class PatientResponse(BaseSchema):
     id: str
     first_name: str
     last_name: str
-    date_of_birth: date
+    birth_date: date
     passport_number: str
     phone_number: str | None
     notes: str | None
@@ -46,17 +46,16 @@ class PatientResponse(BaseSchema):
 class PatientUpdateRequest(BaseSchema):
     first_name: str | None = None
     last_name: str | None = None
-    date_of_birth: date | None = None
+    birth_date: date | None = None
     gender: PatientGender | None = None
     passport_number: str | None = None
 
-    @staticmethod
-    def to_dto(patient_for_update: PatientDTO) -> PatientUpdateDTO:
+    def to_dto(self, patient_for_update: PatientDTO) -> PatientUpdateDTO:
         return PatientUpdateDTO(
             patient_for_update=patient_for_update,
-            first_name=patient_for_update.first_name,
-            last_name=patient_for_update.last_name,
-            date_of_birth=patient_for_update.date_of_birth,
-            gender=patient_for_update.gender,
-            passport_number=patient_for_update.passport_number,
+            first_name=self.first_name,
+            last_name=self.last_name,
+            birth_date=self.birth_date,
+            gender=self.gender,
+            passport_number=self.passport_number,
         )

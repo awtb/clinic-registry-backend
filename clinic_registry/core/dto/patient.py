@@ -23,7 +23,7 @@ class PatientDTO(BaseDTO):
     first_name: str
     last_name: str
     gender: PatientGender
-    date_of_birth: date
+    birth_date: date
     passport_number: str
     phone_number: str | None
     notes: str | None
@@ -38,7 +38,7 @@ class PatientUpdateDTO:
     first_name: str | None = None
     gender: PatientGender | None = None
     last_name: str | None = None
-    date_of_birth: date | None = None
+    birth_date: date | None = None
     phone_number: str | None = None
     notes: str | None = None
     passport_number: str | None = None

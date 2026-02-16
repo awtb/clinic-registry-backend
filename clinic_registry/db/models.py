@@ -102,7 +102,7 @@ class Patient(BaseModel):
             id=self.id,
             first_name=self.first_name,
             last_name=self.last_name,
-            date_of_birth=self.date_of_birth,
+            birth_date=self.date_of_birth,
             passport_number=self.passport_number,
             phone_number=self.phone_number,
             notes=self.notes,
