@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from fastapi import Depends
+from fastapi import Path
 from fastapi import status
 
 from clinic_registry.api.dependencies.auth import get_current_user
@@ -9,6 +10,9 @@ from clinic_registry.api.schemas.base import Page
 from clinic_registry.api.schemas.base import PaginationParams
 from clinic_registry.api.schemas.patient import PatientCreateSchema
 from clinic_registry.api.schemas.patient import PatientResponse
+from clinic_registry.api.schemas.patient import PatientUpdateRequest
+from clinic_registry.core.dto.patient import PatientDTO
+from clinic_registry.core.dto.user import CurrentUserDTO
 from clinic_registry.core.services.patient import PatientService
 
 
@@ -53,3 +57,34 @@ async def get_patients(
     )
 
     return patients_page
+
+
+@router.get(
+    "/{patient_id}",
+    response_model=PatientResponse,
+    summary="Get patient by id",
+)
+async def get_patient_by_id(
+    service: PatientService = Depends(get_patient_service),
+    patient_id: str = Path(title="Patient ID"),
+) -> PatientDTO:
+    return await service.get_patient(patient_id)
+
+
+@router.patch(
+    "/{patient_id}",
+    response_model=PatientResponse,
+    summary="Update patient",
+)
+async def update_patient(
+    data: PatientUpdateRequest,
+    service: PatientService = Depends(get_patient_service),
+    patient_for_update: PatientDTO = Depends(get_patient_by_id),
+    current_user: CurrentUserDTO = Depends(get_current_user),
+) -> PatientDTO:
+    update_data = data.to_dto(patient_for_update)
+
+    return await service.update_patient(
+        current_user,
+        update_data,
+    )
