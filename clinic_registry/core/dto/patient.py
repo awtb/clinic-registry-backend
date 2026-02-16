@@ -41,3 +41,4 @@ class PatientUpdateDTO:
     date_of_birth: date | None = None
     phone_number: str | None = None
     notes: str | None = None
+    passport_number: str | None = None
