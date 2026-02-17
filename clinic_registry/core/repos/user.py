@@ -1,5 +1,8 @@
+from typing import Any
+
 from sqlalchemy import exists
 from sqlalchemy import select
+from sqlalchemy import update
 
 from clinic_registry.core.dto.base import PageDTO
 from clinic_registry.core.dto.user import UserDTO
@@ -15,8 +18,14 @@ class UserRepository(BaseRepository):
 
         return bool(res.scalars().first())
 
-    async def username_exists(self, username: str) -> bool:
+    async def username_exists(
+        self, username: str, exclude_user_id: str | None = None
+    ) -> bool:
         stmt = select(exists(User).where(User.username == username))
+
+        if exclude_user_id is not None:
+            stmt = stmt.where(User.id != exclude_user_id)
+
         res = await self._session.execute(stmt)
 
         return bool(res.scalars().first())
@@ -71,3 +80,36 @@ class UserRepository(BaseRepository):
         first_row = res.scalars().first()
 
         return first_row.to_dto() if first_row else None
+
+    async def update_user(
+        self,
+        user_id_str: str,
+        username: str | None = None,
+        hashed_password: str | None = None,
+        email: str | None = None,
+        first_name: str | None = None,
+        last_name: str | None = None,
+        role: UserRole | None = None,
+    ) -> None:
+        stmt = update(User).where(User.id == user_id_str)
+
+        values: dict[str, Any] = {}
+        if username is not None:
+            values["username"] = username
+        if hashed_password is not None:
+            values["password_hash"] = hashed_password
+        if email is not None:
+            values["email"] = email
+        if first_name is not None:
+            values["first_name"] = first_name
+        if last_name is not None:
+            values["last_name"] = last_name
+        if role is not None:
+            values["role"] = role.value
+
+        if not values:
+            return
+
+        stmt = stmt.values(**values)
+        await self._session.execute(stmt)
+        await self._session.commit()

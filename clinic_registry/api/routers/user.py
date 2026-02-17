@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from fastapi import Depends
+from fastapi import Path
 from fastapi import status
 
 from clinic_registry.api.dependencies.auth import get_current_user
@@ -10,7 +11,9 @@ from clinic_registry.api.schemas.base import PaginationParams
 from clinic_registry.api.schemas.user import ProfileResponse
 from clinic_registry.api.schemas.user import UserCreateSchema
 from clinic_registry.api.schemas.user import UserResponse
+from clinic_registry.api.schemas.user import UserUpdateRequest
 from clinic_registry.core.dto.user import CurrentUserDTO
+from clinic_registry.core.dto.user import UserDTO
 from clinic_registry.core.services.service import UserService
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -63,3 +66,36 @@ async def create_user(
     )
 
     return created_user
+
+
+@router.get(
+    "/{user_id}",
+    response_model=UserResponse,
+    summary="Get user by id",
+)
+async def get_user_by_id(
+    user_id: str = Path(title="User ID"),
+    user_service: UserService = Depends(get_user_service),
+    current_user: CurrentUserDTO = Depends(get_current_user),
+):
+    return await user_service.get_user(user_id)
+
+
+@router.patch(
+    "/{user_id}",
+    response_model=UserResponse,
+    summary="Update user",
+)
+async def update_user(
+    data: UserUpdateRequest,
+    user_service: UserService = Depends(get_user_service),
+    current_user: CurrentUserDTO = Depends(get_current_user),
+    user_for_update: UserDTO = Depends(get_user_by_id),
+) -> UserDTO:
+    dto = data.to_dto()
+
+    return await user_service.update_user(
+        current_user=current_user,
+        user_for_update=user_for_update,
+        dto=dto,
+    )

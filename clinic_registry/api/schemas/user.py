@@ -4,6 +4,7 @@ from pydantic import field_validator
 
 from clinic_registry.api.schemas.base import BaseSchema
 from clinic_registry.core.dto.user import UserCreateDTO
+from clinic_registry.core.dto.user import UserUpdateDTO
 from clinic_registry.core.enums.user import UserRole
 
 
@@ -31,6 +32,30 @@ class UserCreateSchema(BaseSchema):
         )
 
 
+class UserUpdateRequest(BaseSchema):
+    username: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    email: EmailStr | None = None
+    password: str | None = Field(default=None, min_length=8, max_length=128)
+    role: UserRole | None = None
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def normalize_email(cls, value: str | None) -> str | None:
+        return value.lower() if value else value
+
+    def to_dto(self) -> UserUpdateDTO:
+        return UserUpdateDTO(
+            username=self.username,
+            first_name=self.first_name,
+            last_name=self.last_name,
+            email=str(self.email) if self.email is not None else None,
+            password=self.password,
+            role=self.role,
+        )
+
+
 class ProfileResponse(BaseSchema):
     id: str
     first_name: str
@@ -43,5 +68,6 @@ class UserResponse(BaseSchema):
     id: str
     first_name: str
     last_name: str
+    username: str
     email: str
     role: UserRole

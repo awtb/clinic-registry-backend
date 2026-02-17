@@ -26,6 +26,16 @@ class UserCreateDTO(BaseDTO):
 
 
 @dataclass
+class UserUpdateDTO(BaseDTO):
+    username: str | None = None
+    password: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    email: str | None = None
+    role: UserRole | None = None
+
+
+@dataclass
 class CurrentUserDTO(BaseDTO):
     id: str
     email: str
