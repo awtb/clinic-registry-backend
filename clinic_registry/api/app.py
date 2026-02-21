@@ -15,7 +15,7 @@ from clinic_registry.settings import Settings
 
 
 def load_settings(app_instance: FastAPI) -> Settings:
-    settings = Settings()
+    settings = Settings()  # type: ignore
     app_instance.state.settings = settings
 
     return settings
