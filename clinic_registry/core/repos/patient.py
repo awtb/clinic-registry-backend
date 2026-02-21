@@ -31,10 +31,14 @@ class PatientRepository(BaseRepository):
         )
 
         if exclude_patient_id is not None:
-            stmt = stmt.where(Patient.id != exclude_patient_id)
+            stmt = select(
+                exists(Patient).where(
+                    Patient.passport_number == passport_number,
+                    Patient.id != exclude_patient_id,
+                )
+            )
 
         res = await self._session.execute(stmt)
-
         return bool(res.scalars().first())
 
     async def create_patient(

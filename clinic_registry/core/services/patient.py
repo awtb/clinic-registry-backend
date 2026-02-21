@@ -31,12 +31,6 @@ class PatientService:
         if current_user.role != UserRole.admin:
             raise NotAllowedError("Only admins can update patients")
 
-        patient_exists = await self._patient_repo.patient_exists(
-            request.patient_for_update.id,
-        )
-        if not patient_exists:
-            raise NotFoundError("Patient not found")
-
         if request.passport_number is not None:
             await self._validate_patient_passport(
                 request.passport_number,
