@@ -1,6 +1,7 @@
 from datetime import date
 from typing import Any
 
+from sqlalchemy import exists
 from sqlalchemy import select
 from sqlalchemy import update
 
@@ -12,6 +13,30 @@ from clinic_registry.db.models import Patient
 
 
 class PatientRepository(BaseRepository):
+    async def patient_exists(self, patient_id: str) -> bool:
+        stmt = select(exists(Patient).where(Patient.id == patient_id))
+        res = await self._session.execute(stmt)
+
+        return bool(res.scalars().first())
+
+    async def passport_exists(
+        self,
+        passport_number: str,
+        exclude_patient_id: str | None = None,
+    ) -> bool:
+        stmt = select(
+            exists(Patient).where(
+                Patient.passport_number == passport_number,
+            )
+        )
+
+        if exclude_patient_id is not None:
+            stmt = stmt.where(Patient.id != exclude_patient_id)
+
+        res = await self._session.execute(stmt)
+
+        return bool(res.scalars().first())
+
     async def create_patient(
         self,
         first_name: str,

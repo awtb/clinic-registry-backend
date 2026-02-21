@@ -4,6 +4,7 @@ from clinic_registry.core.dto.patient import PatientDTO
 from clinic_registry.core.dto.patient import PatientUpdateDTO
 from clinic_registry.core.dto.user import CurrentUserDTO
 from clinic_registry.core.enums.user import UserRole
+from clinic_registry.core.errors.common import AlreadyExistsError
 from clinic_registry.core.errors.common import NotAllowedError
 from clinic_registry.core.errors.common import NotFoundError
 from clinic_registry.core.repos.patient import PatientRepository
@@ -28,7 +29,19 @@ class PatientService:
     ) -> PatientDTO:
         # TODO(Ilyas): we should have separate method for RBAC checks.
         if current_user.role != UserRole.admin:
-            raise NotAllowedError("Only admins can create users")
+            raise NotAllowedError("Only admins can update patients")
+
+        patient_exists = await self._patient_repo.patient_exists(
+            request.patient_for_update.id,
+        )
+        if not patient_exists:
+            raise NotFoundError("Patient not found")
+
+        if request.passport_number is not None:
+            await self._validate_patient_passport(
+                request.passport_number,
+                request.patient_for_update.id,
+            )
 
         await self._patient_repo.update_patient(
             request.patient_for_update,
@@ -67,3 +80,17 @@ class PatientService:
             notes=dto.notes,
             phone_number=dto.phone_number,
         )
+
+    async def _validate_patient_passport(
+        self,
+        passport_number: str,
+        patient_id: str,
+    ) -> None:
+        passport_exists = await self._patient_repo.passport_exists(
+            passport_number,
+            exclude_patient_id=patient_id,
+        )
+        if passport_exists:
+            raise AlreadyExistsError(
+                "Patient with this passport number already exists",
+            )
