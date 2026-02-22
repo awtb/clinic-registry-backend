@@ -58,8 +58,13 @@ class PatientService:
         self,
         page: int,
         page_size: int,
+        search_query: str | None = None,
     ) -> PageDTO[PatientDTO]:
-        return await self._patient_repo.fetch_all_patients(page, page_size)
+        return await self._patient_repo.fetch_all_patients(
+            page=page,
+            page_size=page_size,
+            search_query=search_query,
+        )
 
     async def create_patient(
         self,

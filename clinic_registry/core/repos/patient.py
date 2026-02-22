@@ -2,6 +2,7 @@ from datetime import date
 from typing import Any
 
 from sqlalchemy import exists
+from sqlalchemy import or_
 from sqlalchemy import select
 from sqlalchemy import update
 
@@ -112,9 +113,24 @@ class PatientRepository(BaseRepository):
         return first_row.to_dto() if first_row else None
 
     async def fetch_all_patients(
-        self, page: int, page_size: int
+        self,
+        page: int,
+        page_size: int,
+        search_query: str | None = None,
     ) -> PageDTO[PatientDTO]:
         stmt = select(Patient).order_by(Patient.created_at.desc())
+        normalized_search_query = search_query.strip() if search_query else ""
+
+        if normalized_search_query:
+            search_pattern = f"%{normalized_search_query}%"
+            stmt = stmt.where(
+                or_(
+                    Patient.first_name.ilike(search_pattern),
+                    Patient.last_name.ilike(search_pattern),
+                    Patient.passport_number.ilike(search_pattern),
+                    Patient.phone_number.ilike(search_pattern),
+                ),
+            )
 
         needed_page = await self._fetch(
             query=stmt,

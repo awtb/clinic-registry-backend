@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import Path
+from fastapi import Query
 from fastapi import status
 
 from clinic_registry.api.dependencies.auth import get_current_user
@@ -50,10 +51,15 @@ async def create_patient(
 async def get_patients(
     service: PatientService = Depends(get_patient_service),
     pagination_params: PaginationParams = Depends(get_pagination_params),
+    search_query: str | None = Query(
+        default=None,
+        description="Search by first name, last name, passport number, or phone number",
+    ),
 ):
     patients_page = await service.get_patients(
         page=pagination_params.page,
         page_size=pagination_params.page_size,
+        search_query=search_query,
     )
 
     return patients_page
