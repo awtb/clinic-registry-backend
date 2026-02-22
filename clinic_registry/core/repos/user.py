@@ -1,6 +1,7 @@
 from typing import Any
 
 from sqlalchemy import exists
+from sqlalchemy import or_
 from sqlalchemy import select
 from sqlalchemy import update
 
@@ -44,8 +45,23 @@ class UserRepository(BaseRepository):
 
         return bool(res.scalars().first())
 
-    async def fetch_all(self, page: int, page_size: int) -> PageDTO[UserDTO]:
+    async def fetch_all(
+        self,
+        page: int,
+        page_size: int,
+        search_query: str | None = None,
+    ) -> PageDTO[UserDTO]:
         stmt = select(User).order_by(User.created_at.desc())
+        normalized_search_query = search_query.strip() if search_query else ""
+
+        if normalized_search_query:
+            search_pattern = f"%{normalized_search_query}%"
+            stmt = stmt.where(
+                or_(
+                    User.first_name.ilike(search_pattern),
+                    User.last_name.ilike(search_pattern),
+                ),
+            )
 
         needed_page = await self._fetch(
             query=stmt,

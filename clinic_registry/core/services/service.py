@@ -24,8 +24,13 @@ class UserService:
         self,
         page: int,
         page_size: int,
+        search_query: str | None = None,
     ) -> PageDTO[UserDTO]:
-        return await self._repo.fetch_all(page, page_size)
+        return await self._repo.fetch_all(
+            page=page,
+            page_size=page_size,
+            search_query=search_query,
+        )
 
     async def get_user(self, user_id: str) -> UserDTO:
         user = await self._repo.get_user_by_id(user_id)

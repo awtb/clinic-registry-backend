@@ -124,3 +124,16 @@ class PatientRepository(BaseRepository):
         )
 
         return needed_page
+
+    async def update_last_visit(
+        self,
+        patient_id: str,
+        last_visit: date,
+    ) -> None:
+        stmt = (
+            update(Patient)
+            .where(Patient.id == patient_id)
+            .values(last_visit=last_visit)
+        )
+        await self._session.execute(stmt)
+        await self._session.commit()

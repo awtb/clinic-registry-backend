@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import Path
+from fastapi import Query
 from fastapi import status
 
 from clinic_registry.api.dependencies.auth import get_current_user
@@ -37,12 +38,17 @@ async def profile(
 @router.get("/", response_model=Page[UserResponse], summary="Get all users")
 async def get_users(
     pagination_params: PaginationParams = Depends(get_pagination_params),
+    search_query: str | None = Query(
+        default=None,
+        description="Search by first or last name",
+    ),
     user_service: UserService = Depends(get_user_service),
     current_user: CurrentUserDTO = Depends(get_current_user),
 ):
     users_page = await user_service.fetch_all_users(
         page=pagination_params.page,
         page_size=pagination_params.page_size,
+        search_query=search_query,
     )
 
     return users_page

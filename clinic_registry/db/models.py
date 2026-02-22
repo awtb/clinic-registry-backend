@@ -151,6 +151,7 @@ class MedicalRecord(BaseModel):
         return MedicalRecordDTO(
             id=self.id,
             patient_id=self.patient_id,
+            patient=self.patient.to_dto(),
             diagnosis=self.diagnosis,
             treatment=self.treatment,
             created_at=self.created_at,
@@ -158,4 +159,5 @@ class MedicalRecord(BaseModel):
             chief_complaint=self.chief_complaint,
             creator_id=self.creator_id,
             procedures=self.procedures,
+            creator=self.creator.to_dto(),
         )

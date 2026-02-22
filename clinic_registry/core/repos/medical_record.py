@@ -3,6 +3,7 @@ from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy import update
+from sqlalchemy.orm import selectinload
 
 from clinic_registry.core.dto.base import PageDTO
 from clinic_registry.core.dto.medical_record import MedicalRecordDTO
@@ -32,14 +33,25 @@ class MedicalRecordRepository(BaseRepository):
         await self._session.commit()
         await self._session.refresh(model)
 
-        return model.to_dto()
+        stmt = (
+            select(MedicalRecord)
+            .where(MedicalRecord.id == model.id)
+            .options(selectinload(MedicalRecord.patient))
+            .options(selectinload(MedicalRecord.creator))
+        )
+        res = await self._session.execute(stmt)
+        medical_record = res.scalars().first()
 
-    async def get_medical_record_by_id_or_none(
+        return medical_record.to_dto() if medical_record else model.to_dto()
+
+    async def get_record_by_id_or_none(
         self,
         medical_record_id: str,
     ) -> MedicalRecordDTO | None:
-        stmt = select(MedicalRecord).where(
-            MedicalRecord.id == medical_record_id,
+        stmt = (
+            select(MedicalRecord)
+            .where(MedicalRecord.id == medical_record_id)
+            .options(selectinload(MedicalRecord.patient))
         )
         res = await self._session.execute(stmt)
         first_row = res.scalars().first()
@@ -51,7 +63,12 @@ class MedicalRecordRepository(BaseRepository):
         page: int,
         page_size: int,
     ) -> PageDTO[MedicalRecordDTO]:
-        stmt = select(MedicalRecord).order_by(MedicalRecord.created_at.desc())
+        stmt = (
+            select(MedicalRecord)
+            .options(selectinload(MedicalRecord.patient))
+            .options(selectinload(MedicalRecord.creator))
+            .order_by(MedicalRecord.created_at.desc())
+        )
         needed_page = await self._fetch(
             query=stmt,
             page=page,
