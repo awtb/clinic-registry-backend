@@ -43,10 +43,8 @@ class UserService:
         if current_user.role != UserRole.admin:
             raise NotAllowedError("Only admins can create users")
 
-        email_exists = await self._repo.user_exists(dto.email)
-        username_exists = await self._repo.username_exists(dto.username)
-        if email_exists or username_exists:
-            raise UserAlreadyExistsError()
+        await self._validate_user_email(dto.email)
+        await self._validate_username(dto.username)
 
         password_hash = self._auth_helper.hash_password(dto.password)
 
@@ -74,18 +72,11 @@ class UserService:
         if dto.role is not None and current_user.role != UserRole.admin:
             raise NotAllowedError("Only admins can change roles")
 
-        if dto.email is not None and dto.email != user_for_update.email:
-            email_exists = await self._repo.user_exists(dto.email)
-            if email_exists:
-                raise UserAlreadyExistsError()
+        if dto.email is not None:
+            await self._validate_user_email(dto.email, user_for_update.id)
 
         if dto.username is not None:
-            username_exists = await self._repo.username_exists(
-                dto.username,
-                exclude_user_id=user_for_update.id,
-            )
-            if username_exists:
-                raise UserAlreadyExistsError()
+            await self._validate_username(dto.username, user_for_update.id)
 
         hashed_password = (
             self._auth_helper.hash_password(dto.password)
@@ -104,3 +95,29 @@ class UserService:
         )
 
         return await self.get_user(user_for_update.id)
+
+    async def _validate_user_email(
+        self,
+        email: str,
+        user_id: str | None = None,
+    ) -> None:
+        email_exists = await self._repo.user_exists(
+            email,
+            exclude_user_id=user_id,
+        )
+        if email_exists:
+            raise UserAlreadyExistsError("User with this email already exists")
+
+    async def _validate_username(
+        self,
+        username: str,
+        user_id: str | None = None,
+    ) -> None:
+        username_exists = await self._repo.username_exists(
+            username,
+            exclude_user_id=user_id,
+        )
+        if username_exists:
+            raise UserAlreadyExistsError(
+                "User with this username already exists",
+            )

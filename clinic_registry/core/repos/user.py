@@ -12,8 +12,19 @@ from clinic_registry.db.models import User
 
 
 class UserRepository(BaseRepository):
-    async def user_exists(self, email: str) -> bool:
-        stmt = select(exists(User).where(User.email == email))
+    async def user_exists(
+        self,
+        email: str,
+        exclude_user_id: str | None = None,
+    ) -> bool:
+
+        conditions = [User.email == email]
+
+        if exclude_user_id is not None:
+            conditions.append(User.id != exclude_user_id)
+
+        stmt = select(exists(User).where(*conditions))
+
         res = await self._session.execute(stmt)
 
         return bool(res.scalars().first())
@@ -21,10 +32,13 @@ class UserRepository(BaseRepository):
     async def username_exists(
         self, username: str, exclude_user_id: str | None = None
     ) -> bool:
-        stmt = select(exists(User).where(User.username == username))
+        stmt = select(exists(User))
+        conditions = [User.username == username]
 
         if exclude_user_id is not None:
-            stmt = stmt.where(User.id != exclude_user_id)
+            conditions.append(User.id != exclude_user_id)
+
+        stmt = select(exists(User).where(*conditions))
 
         res = await self._session.execute(stmt)
 
