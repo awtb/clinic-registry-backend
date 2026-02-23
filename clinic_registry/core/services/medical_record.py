@@ -3,9 +3,12 @@ from clinic_registry.core.dto.medical_record import MedicalRecordCreateDTO
 from clinic_registry.core.dto.medical_record import MedicalRecordDTO
 from clinic_registry.core.dto.medical_record import MedicalRecordUpdateDTO
 from clinic_registry.core.dto.user import CurrentUserDTO
+from clinic_registry.core.enums.log import LogAction
+from clinic_registry.core.enums.log import LogEntity
 from clinic_registry.core.errors.common import NotFoundError
 from clinic_registry.core.repos.medical_record import MedicalRecordRepository
 from clinic_registry.core.repos.patient import PatientRepository
+from clinic_registry.core.services.log import LogService
 
 
 class MedicalRecordService:
@@ -13,9 +16,11 @@ class MedicalRecordService:
         self,
         medical_record_repo: MedicalRecordRepository,
         patient_repo: PatientRepository,
+        log_service: LogService,
     ) -> None:
         self._records_repo = medical_record_repo
         self._patient_repo = patient_repo
+        self._log_service = log_service
 
     async def create_medical_record(
         self,
@@ -40,6 +45,13 @@ class MedicalRecordService:
         await self._patient_repo.update_last_visit(
             patient_id=dto.patient_id,
             last_visit=created_record.created_at.date(),
+        )
+        await self._log_service.log(
+            actor_id=current_user.id,
+            entity=LogEntity.MEDICAL_RECORD,
+            action=LogAction.CREATE,
+            entity_id=created_record.id,
+            entity_after=created_record,
         )
 
         return created_record
@@ -68,6 +80,7 @@ class MedicalRecordService:
 
     async def update_medical_record(
         self,
+        current_user: CurrentUserDTO,
         dto: MedicalRecordUpdateDTO,
     ) -> MedicalRecordDTO:
         await self._records_repo.update_medical_record(
@@ -80,6 +93,14 @@ class MedicalRecordService:
 
         updated_medical_record = await self.get_medical_record(
             dto.medical_record_for_update.id,
+        )
+        await self._log_service.log(
+            actor_id=current_user.id,
+            entity=LogEntity.MEDICAL_RECORD,
+            action=LogAction.UPDATE,
+            entity_id=updated_medical_record.id,
+            entity_before=dto.medical_record_for_update,
+            entity_after=updated_medical_record,
         )
 
         return updated_medical_record

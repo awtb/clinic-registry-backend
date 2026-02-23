@@ -81,8 +81,12 @@ async def update_medical_record(
     data: RecordUpdateSchema,
     medical_record_for_update: MedicalRecordDTO = Depends(get_medical_record),
     service: MedicalRecordService = Depends(get_record_service),
+    current_user: CurrentUserDTO = Depends(get_current_user),
 ) -> MedicalRecordDTO:
     dto = data.to_dto(medical_record_for_update)
-    updated_medical_record = await service.update_medical_record(dto)
+    updated_medical_record = await service.update_medical_record(
+        current_user=current_user,
+        dto=dto,
+    )
 
     return updated_medical_record

@@ -3,16 +3,24 @@ from clinic_registry.core.dto.patient import PatientCreateDTO
 from clinic_registry.core.dto.patient import PatientDTO
 from clinic_registry.core.dto.patient import PatientUpdateDTO
 from clinic_registry.core.dto.user import CurrentUserDTO
+from clinic_registry.core.enums.log import LogAction
+from clinic_registry.core.enums.log import LogEntity
 from clinic_registry.core.enums.user import UserRole
 from clinic_registry.core.errors.common import AlreadyExistsError
 from clinic_registry.core.errors.common import NotAllowedError
 from clinic_registry.core.errors.common import NotFoundError
 from clinic_registry.core.repos.patient import PatientRepository
+from clinic_registry.core.services.log import LogService
 
 
 class PatientService:
-    def __init__(self, patient_repo: PatientRepository) -> None:
+    def __init__(
+        self,
+        patient_repo: PatientRepository,
+        log_service: LogService,
+    ) -> None:
         self._patient_repo = patient_repo
+        self._log_service = log_service
 
     async def get_patient(self, patient_id: str) -> PatientDTO:
         patient = await self._patient_repo.get_patient_by_id_or_none(
@@ -51,6 +59,14 @@ class PatientService:
         patient = await self.get_patient(
             request.patient_for_update.id,
         )
+        await self._log_service.log(
+            actor_id=current_user.id,
+            entity=LogEntity.PATIENT,
+            action=LogAction.UPDATE,
+            entity_id=patient.id,
+            entity_before=request.patient_for_update,
+            entity_after=patient,
+        )
 
         return patient
 
@@ -68,9 +84,10 @@ class PatientService:
 
     async def create_patient(
         self,
+        current_user: CurrentUserDTO,
         dto: PatientCreateDTO,
     ) -> PatientDTO:
-        return await self._patient_repo.create_patient(
+        patient = await self._patient_repo.create_patient(
             gender=dto.gender,
             first_name=dto.first_name,
             last_name=dto.last_name,
@@ -79,6 +96,15 @@ class PatientService:
             notes=dto.notes,
             phone_number=dto.phone_number,
         )
+        await self._log_service.log(
+            actor_id=current_user.id,
+            entity=LogEntity.PATIENT,
+            action=LogAction.CREATE,
+            entity_id=patient.id,
+            entity_after=patient,
+        )
+
+        return patient
 
     async def _validate_patient_passport(
         self,

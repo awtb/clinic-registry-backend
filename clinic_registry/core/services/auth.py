@@ -3,11 +3,14 @@ from clinic_registry.core.dto.auth import RegistrationRequestDTO
 from clinic_registry.core.dto.auth import TokenPairDTO
 from clinic_registry.core.dto.user import CurrentUserDTO
 from clinic_registry.core.dto.user import UserDTO
+from clinic_registry.core.enums.log import LogAction
+from clinic_registry.core.enums.log import LogEntity
 from clinic_registry.core.enums.user import UserRole
 from clinic_registry.core.errors.auth import IncorrectEmailOrPasswordError
 from clinic_registry.core.errors.auth import UserAlreadyExistsError
 from clinic_registry.core.helpers.auth import AuthHelper
 from clinic_registry.core.repos.user import UserRepository
+from clinic_registry.core.services.log import LogService
 
 
 class AuthService:
@@ -15,9 +18,11 @@ class AuthService:
         self,
         user_repo: UserRepository,
         auth_helper: AuthHelper,
+        log_service: LogService,
     ) -> None:
         self._user_repo = user_repo
         self._auth_helper = auth_helper
+        self._log_service = log_service
 
     async def register(
         self,
@@ -45,6 +50,14 @@ class AuthService:
             password_hash=hashed_password,
             role=UserRole.user,
         )
+        await self._log_service.log(
+            actor_id=created_user.id,
+            entity=LogEntity.USER,
+            action=LogAction.CREATE,
+            entity_id=created_user.id,
+            entity_after=created_user,
+            metadata={"source": "auth.register"},
+        )
 
         return created_user
 
@@ -60,6 +73,14 @@ class AuthService:
 
         if not password_matched:
             raise IncorrectEmailOrPasswordError()
+
+        await self._log_service.log(
+            actor_id=user.id,
+            entity=LogEntity.USER,
+            action=LogAction.UPDATE,
+            entity_id=user.id,
+            metadata={"event": "login"},
+        )
 
         return self._auth_helper.create_token_pair(
             user_id=user.id,

@@ -3,12 +3,15 @@ from clinic_registry.core.dto.user import CurrentUserDTO
 from clinic_registry.core.dto.user import UserCreateDTO
 from clinic_registry.core.dto.user import UserDTO
 from clinic_registry.core.dto.user import UserUpdateDTO
+from clinic_registry.core.enums.log import LogAction
+from clinic_registry.core.enums.log import LogEntity
 from clinic_registry.core.enums.user import UserRole
 from clinic_registry.core.errors.auth import UserAlreadyExistsError
 from clinic_registry.core.errors.common import NotAllowedError
 from clinic_registry.core.errors.common import NotFoundError
 from clinic_registry.core.helpers.auth import AuthHelper
 from clinic_registry.core.repos.user import UserRepository
+from clinic_registry.core.services.log import LogService
 
 
 class UserService:
@@ -16,9 +19,11 @@ class UserService:
         self,
         repo: UserRepository,
         auth_helper: AuthHelper,
+        log_service: LogService,
     ) -> None:
         self._repo = repo
         self._auth_helper = auth_helper
+        self._log_service = log_service
 
     async def fetch_all_users(
         self,
@@ -53,7 +58,7 @@ class UserService:
 
         password_hash = self._auth_helper.hash_password(dto.password)
 
-        return await self._repo.create_user(
+        created_user = await self._repo.create_user(
             username=dto.username,
             first_name=dto.first_name,
             last_name=dto.last_name,
@@ -61,6 +66,15 @@ class UserService:
             password_hash=password_hash,
             role=dto.role,
         )
+        await self._log_service.log(
+            actor_id=current_user.id,
+            entity=LogEntity.USER,
+            action=LogAction.CREATE,
+            entity_id=created_user.id,
+            entity_after=created_user,
+        )
+
+        return created_user
 
     async def update_user(
         self,
@@ -98,8 +112,17 @@ class UserService:
             last_name=dto.last_name,
             role=dto.role,
         )
+        updated_user = await self.get_user(user_for_update.id)
+        await self._log_service.log(
+            actor_id=current_user.id,
+            entity=LogEntity.USER,
+            action=LogAction.UPDATE,
+            entity_id=updated_user.id,
+            entity_before=user_for_update,
+            entity_after=updated_user,
+        )
 
-        return await self.get_user(user_for_update.id)
+        return updated_user
 
     async def _validate_user_email(
         self,

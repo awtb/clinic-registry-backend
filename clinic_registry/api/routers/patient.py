@@ -35,10 +35,11 @@ router = APIRouter(
 async def create_patient(
     data: PatientCreateSchema,
     service: PatientService = Depends(get_patient_service),
+    current_user: CurrentUserDTO = Depends(get_current_user),
 ):
     dto = data.to_dto()
 
-    created_patient = await service.create_patient(dto)
+    created_patient = await service.create_patient(current_user, dto)
 
     return created_patient
 
