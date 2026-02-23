@@ -8,6 +8,7 @@ from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from clinic_registry.api.routers.auth import router as auth_router
+from clinic_registry.api.routers.log import router as logs_router
 from clinic_registry.api.routers.medical_record import router as records_router
 from clinic_registry.api.routers.patient import router as patients_router
 from clinic_registry.api.routers.user import router as users_router
@@ -75,6 +76,7 @@ def setup_routers(app_instance: FastAPI) -> None:
     app_instance.include_router(users_router)
     app_instance.include_router(patients_router)
     app_instance.include_router(records_router)
+    app_instance.include_router(logs_router)
 
 
 def build_app() -> FastAPI:
