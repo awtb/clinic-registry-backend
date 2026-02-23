@@ -53,7 +53,7 @@ async def get_patients(
     pagination_params: PaginationParams = Depends(get_pagination_params),
     search_query: str | None = Query(
         default=None,
-        description="Search by first name, last name, passport number, or phone number",
+        description="Search by first/last name & passport/phone number",
     ),
 ):
     patients_page = await service.get_patients(

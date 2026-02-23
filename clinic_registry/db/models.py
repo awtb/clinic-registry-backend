@@ -1,10 +1,12 @@
 from datetime import date
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import Boolean
 from sqlalchemy import Date
 from sqlalchemy import DateTime
 from sqlalchemy import ForeignKey
+from sqlalchemy import JSON
 from sqlalchemy import String
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
@@ -12,9 +14,12 @@ from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from ulid import ULID
 
+from clinic_registry.core.dto.log import LogDTO
 from clinic_registry.core.dto.medical_record import MedicalRecordDTO
 from clinic_registry.core.dto.patient import PatientDTO
 from clinic_registry.core.dto.user import UserDTO
+from clinic_registry.core.enums.log import LogAction
+from clinic_registry.core.enums.log import LogEntity
 from clinic_registry.core.enums.patient import PatientGender
 from clinic_registry.core.enums.user import UserRole
 
@@ -160,4 +165,52 @@ class MedicalRecord(BaseModel):
             creator_id=self.creator_id,
             procedures=self.procedures,
             creator=self.creator.to_dto(),
+        )
+
+
+class Log(BaseModel):
+    __tablename__ = "logs"
+
+    id: Mapped[str] = mapped_column(
+        String(),
+        nullable=False,
+        primary_key=True,
+        default=lambda: str(ULID()),
+    )
+
+    actor_id: Mapped[str] = mapped_column(
+        String(),
+        ForeignKey("users.id"),
+        nullable=False,
+    )
+
+    action: Mapped[LogAction] = mapped_column(String(), nullable=False)
+    entity_id: Mapped[str] = mapped_column(String(), nullable=False)
+    entity_type: Mapped[LogEntity] = mapped_column(String(), nullable=False)
+
+    entity_before: Mapped[dict[str, Any] | None] = mapped_column(
+        JSON(),
+        nullable=True,
+    )
+    entity_after: Mapped[dict[str, Any] | None] = mapped_column(
+        JSON(),
+        nullable=True,
+    )
+    meta: Mapped[dict[str, Any] | None] = mapped_column(JSON(), nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(), nullable=False, default=datetime.now
+    )
+
+    def to_dto(self) -> LogDTO:
+        return LogDTO(
+            id=self.id,
+            actor_id=self.actor_id,
+            action=LogAction(self.action),
+            entity_id=self.entity_id,
+            entity_type=LogEntity(self.entity_type),
+            entity_before=self.entity_before,
+            entity_after=self.entity_after,
+            metadata=self.meta,
+            created_at=self.created_at,
         )
