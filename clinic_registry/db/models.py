@@ -6,6 +6,7 @@ from sqlalchemy import Boolean
 from sqlalchemy import Date
 from sqlalchemy import DateTime
 from sqlalchemy import ForeignKey
+from sqlalchemy import Index
 from sqlalchemy import JSON
 from sqlalchemy import String
 from sqlalchemy.orm import DeclarativeBase
@@ -30,6 +31,11 @@ class BaseModel(DeclarativeBase):
 
 class User(BaseModel):
     __tablename__ = "users"
+    __table_args__ = (
+        Index("idx_users_created_at", "created_at"),
+        Index("idx_users_first_name", "first_name"),
+        Index("idx_users_last_name", "last_name"),
+    )
 
     id: Mapped[str] = mapped_column(
         String(),
@@ -75,6 +81,12 @@ class User(BaseModel):
 
 class Patient(BaseModel):
     __tablename__ = "patients"
+    __table_args__ = (
+        Index("idx_patients_created_at", "created_at"),
+        Index("idx_patients_first_name", "first_name"),
+        Index("idx_patients_last_name", "last_name"),
+        Index("idx_patients_phone_number", "phone_number"),
+    )
 
     id: Mapped[str] = mapped_column(
         String(),
@@ -170,6 +182,17 @@ class MedicalRecord(BaseModel):
 
 class Log(BaseModel):
     __tablename__ = "logs"
+    __table_args__ = (
+        Index("idx_logs_created_at", "created_at"),
+        Index("idx_logs_actor_id_created_at", "actor_id", "created_at"),
+        Index(
+            "idx_logs_entity_type_entity_id_created_at",
+            "entity_type",
+            "entity_id",
+            "created_at",
+        ),
+        Index("idx_logs_action_created_at", "action", "created_at"),
+    )
 
     id: Mapped[str] = mapped_column(
         String(),
