@@ -1,7 +1,6 @@
 from clinic_registry.api.schemas.base import BaseSchema
 from clinic_registry.core.enums.log import LogAction
 from clinic_registry.core.enums.log import LogEntity
-from clinic_registry.core.enums.patient import PatientGender
 from clinic_registry.core.enums.user import UserRole
 
 
@@ -14,7 +13,6 @@ class DashboardCountResponse(BaseSchema):
 
 class DashboardBreakdownResponse(BaseSchema):
     users_by_role: dict[UserRole, int]
-    patients_by_gender: dict[PatientGender, int]
     logs_by_entity: dict[LogEntity, int]
     logs_by_action: dict[LogAction, int]
 
