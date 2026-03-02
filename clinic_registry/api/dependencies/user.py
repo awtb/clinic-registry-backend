@@ -24,7 +24,6 @@ def get_user_service(
 ) -> UserService:
     auth_helper = AuthHelper(
         secret_key=settings.jwt_secret_key,
-        hashing_algorithm=settings.jwt_hashing_algorithm,
         access_token_exp=settings.jwt_access_token_expiration_minutes,
         refresh_token_exp=settings.jwt_refresh_token_expiration_minutes,
     )
