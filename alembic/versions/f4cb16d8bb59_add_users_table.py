@@ -14,7 +14,6 @@ from alembic import op
 import sqlalchemy as sa
 from datetime import datetime
 
-from clinic_registry.settings import Settings
 from clinic_registry.core.enums.user import UserRole
 from clinic_registry.core.helpers.auth import AuthHelper
 
@@ -24,8 +23,6 @@ down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
-app_settings = Settings()  # type: ignore
-
 ROOT_USER_LOGIN = "root"
 ROOT_USER_PASSWORD = "root"
 ROOT_USER_EMAIL = ("root@clinic.local",)
@@ -34,11 +31,6 @@ ROOT_USER_LAST_NAME = ("User",)
 
 
 def upgrade() -> None:
-    auth_helper = AuthHelper(
-        secret_key=app_settings.jwt_secret_key,
-        hashing_algorithm=app_settings.jwt_hashing_algorithm,
-    )
-
     users_table = op.create_table(
         "users",
         sa.Column("id", sa.String(), nullable=False),
@@ -71,7 +63,7 @@ def upgrade() -> None:
                 "is_active": True,
                 "created_at": now,
                 "updated_at": now,
-                "password_hash": auth_helper.hash_password(ROOT_USER_PASSWORD),
+                "password_hash": AuthHelper.hash_password(ROOT_USER_PASSWORD),
             }
         ],
     )
