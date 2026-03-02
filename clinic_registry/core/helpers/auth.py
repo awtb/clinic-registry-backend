@@ -12,15 +12,15 @@ from clinic_registry.core.errors.auth import InvalidAuthorizationScheme
 
 
 class AuthHelper:
+    JWT_ALGORITHM = "HS256"
+
     def __init__(
         self,
         secret_key: str,
-        hashing_algorithm: str,
         access_token_exp: int = 30,
         refresh_token_exp: int = 30,
     ) -> None:
         self._secret_key = secret_key
-        self._hashing_algorithm = hashing_algorithm
         self._access_token_exp_minutes = access_token_exp
         self._refresh_token_exp_minutes = refresh_token_exp
 
@@ -68,7 +68,7 @@ class AuthHelper:
         token = jwt.encode(
             payload,
             self._secret_key,
-            algorithm=self._hashing_algorithm,
+            algorithm=self.JWT_ALGORITHM,
         )
 
         return token
@@ -79,7 +79,7 @@ class AuthHelper:
     ) -> dict[str, str]:
         try:
             payload = jwt.decode(
-                token, self._secret_key, algorithms=[self._hashing_algorithm]
+                token, self._secret_key, algorithms=[self.JWT_ALGORITHM]
             )
         except jwt.ExpiredSignatureError:
             raise ExpiredTokenError
