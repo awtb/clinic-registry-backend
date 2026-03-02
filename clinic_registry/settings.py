@@ -12,7 +12,6 @@ class Settings(BaseSettings):
     db_sync_driver: str = "postgresql+psycopg2"
 
     jwt_secret_key: str
-    jwt_hashing_algorithm: str = "HS256"
     jwt_access_token_expiration_minutes: int = 30
     jwt_refresh_token_expiration_minutes: int = 80
 
