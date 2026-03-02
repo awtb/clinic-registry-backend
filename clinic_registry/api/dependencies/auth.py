@@ -22,7 +22,6 @@ logger = logging.getLogger("clinic_registry.api.dependencies.auth")
 def get_auth_helper(settings: Settings = Depends(get_settings)) -> AuthHelper:
     return AuthHelper(
         secret_key=settings.jwt_secret_key,
-        hashing_algorithm=settings.jwt_hashing_algorithm,
         access_token_exp=settings.jwt_access_token_expiration_minutes,
         refresh_token_exp=settings.jwt_refresh_token_expiration_minutes,
     )
