@@ -3,7 +3,6 @@ from pydantic import Field
 from pydantic import field_validator
 
 from clinic_registry.api.schemas.base import BaseSchema
-from clinic_registry.core.dto.auth import RegistrationRequestDTO
 
 
 class TokenSchema(BaseSchema):
@@ -23,15 +22,6 @@ class RegistrationRequestSchema(BaseSchema):
     @classmethod
     def normalize_email(cls, value: str) -> str:
         return value.lower()
-
-    def to_dto(self) -> RegistrationRequestDTO:
-        return RegistrationRequestDTO(
-            username=self.username,
-            first_name=self.first_name,
-            last_name=self.last_name,
-            email=str(self.email),
-            password=self.password,
-        )
 
 
 class RegistrationResponseSchema(BaseSchema):

@@ -3,6 +3,8 @@ from fastapi import Depends
 from fastapi import Path
 from fastapi import status
 
+from clinic_registry.api.mappers import record_create_schema_to_dto
+from clinic_registry.api.mappers import record_update_schema_to_dto
 from clinic_registry.api.dependencies.auth import get_current_user
 from clinic_registry.api.dependencies.common import get_pagination_params
 from clinic_registry.api.dependencies.medical_record import get_record_service
@@ -33,7 +35,7 @@ async def create_medical_record(
     service: MedicalRecordService = Depends(get_record_service),
     current_user: CurrentUserDTO = Depends(get_current_user),
 ):
-    dto = data.to_dto()
+    dto = record_create_schema_to_dto(data)
     created_medical_record = await service.create_medical_record(
         dto=dto,
         current_user=current_user,
@@ -83,7 +85,7 @@ async def update_medical_record(
     service: MedicalRecordService = Depends(get_record_service),
     current_user: CurrentUserDTO = Depends(get_current_user),
 ) -> MedicalRecordDTO:
-    dto = data.to_dto(medical_record_for_update)
+    dto = record_update_schema_to_dto(data, medical_record_for_update)
     updated_medical_record = await service.update_medical_record(
         current_user=current_user,
         dto=dto,

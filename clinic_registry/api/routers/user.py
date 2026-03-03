@@ -4,6 +4,8 @@ from fastapi import Path
 from fastapi import Query
 from fastapi import status
 
+from clinic_registry.api.mappers import user_create_schema_to_dto
+from clinic_registry.api.mappers import user_update_request_to_dto
 from clinic_registry.api.dependencies.auth import get_current_user
 from clinic_registry.api.dependencies.common import get_pagination_params
 from clinic_registry.api.dependencies.user import get_user_service
@@ -65,7 +67,7 @@ async def create_user(
     user_service: UserService = Depends(get_user_service),
     current_user: CurrentUserDTO = Depends(get_current_user),
 ):
-    dto = data.to_dto()
+    dto = user_create_schema_to_dto(data)
     created_user = await user_service.create_user(
         current_user=current_user,
         dto=dto,
@@ -98,7 +100,7 @@ async def update_user(
     current_user: CurrentUserDTO = Depends(get_current_user),
     user_for_update: UserDTO = Depends(get_user_by_id),
 ) -> UserDTO:
-    dto = data.to_dto()
+    dto = user_update_request_to_dto(data)
 
     return await user_service.update_user(
         current_user=current_user,
