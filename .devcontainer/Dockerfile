@@ -1,13 +1,12 @@
-FROM python:3.14
+FROM python:3.13-slim
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
     iputils-ping \
-    black \
     cloc \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /workspace
+WORKDIR /workspaces/clinic-registry-backend

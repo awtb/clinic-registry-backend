@@ -1,36 +1,43 @@
-name: clinic-registry-dev
+name: clinic-registry-devcontainer
+
 services:
   app:
-    container_name: clinic_registry_devcontainer
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
+    command: ["sleep", "infinity"]
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - ../.env
     environment:
-      DB_PASSWORD: db
+      DB_USER: app
+      DB_PASSWORD: app
       DB_HOST: db
       DB_PORT: 5432
-      DB_NAME: db
-      DB_USER: user
-      SERVING_PORT: ${SERVING_PORT:-8000}
-    depends_on:
-      - db
-    volumes:
-      - ..:/workspace:cached
+      DB_NAME: app
     ports:
       - "${SERVING_PORT:-8000}:${SERVING_PORT:-8000}"
-      - "8089:8089"
-    command: ["sleep", "infinity"]
+    volumes:
+      - ..:/workspaces/clinic-registry-backend:cached
 
   db:
-    container_name: clinic_registry_devcontainer_db
     image: postgres:17
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: db
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: db
+      POSTGRES_DB: app
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
 
 volumes:
   postgres_data:
