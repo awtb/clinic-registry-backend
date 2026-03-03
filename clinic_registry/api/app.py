@@ -13,11 +13,12 @@ from clinic_registry.api.routers.log import router as logs_router
 from clinic_registry.api.routers.medical_record import router as records_router
 from clinic_registry.api.routers.patient import router as patients_router
 from clinic_registry.api.routers.user import router as users_router
+from clinic_registry.settings import get_settings
 from clinic_registry.settings import Settings
 
 
 def load_settings(app_instance: FastAPI) -> Settings:
-    settings = Settings()  # type: ignore
+    settings = get_settings()
     app_instance.state.settings = settings
 
     return settings

@@ -2,7 +2,7 @@ import uvicorn
 from typer import Option
 from typer import Typer
 
-from clinic_registry.settings import Settings
+from clinic_registry.settings import get_settings
 
 app = Typer()
 
@@ -13,7 +13,7 @@ def start_app(
         default=False,
     ),
 ) -> None:
-    settings = Settings()  # type: ignore
+    settings = get_settings()
     uvicorn.run(
         "clinic_registry.api.app:build_app",
         reload=reload,

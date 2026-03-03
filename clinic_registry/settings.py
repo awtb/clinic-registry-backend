@@ -1,3 +1,5 @@
+import os
+
 from pydantic_settings import BaseSettings
 from pydantic_settings import SettingsConfigDict
 
@@ -29,3 +31,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         extra="ignore", env_ignore_empty=True, env_file=".env"
     )
+
+
+def get_settings(env_file: str | None = None) -> Settings:
+    target_env_file = env_file or os.getenv("SETTINGS_ENV_FILE", ".env")
+    return Settings(_env_file=target_env_file)  # type: ignore[call-arg]

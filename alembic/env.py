@@ -13,7 +13,7 @@ sys.path.append("src")
 config = context.config
 
 
-from clinic_registry.settings import Settings
+from clinic_registry.settings import get_settings
 from clinic_registry.db.models import BaseModel
 
 
@@ -23,7 +23,7 @@ if config.config_file_name is not None:
 
 target_metadata = BaseModel.metadata
 
-app_settings = Settings()
+app_settings = get_settings()
 
 url = URL.create(
     drivername=app_settings.db_sync_driver,

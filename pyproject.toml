@@ -22,3 +22,10 @@ dependencies = [
     "ulid>=1.1",
     "uvicorn>=0.40.0",
 ]
+
+[dependency-groups]
+test = [
+    "pytest>=8.4.2",
+    "pytest-asyncio>=0.24.0",
+    "testcontainers[postgres]>=4.13.2",
+]
