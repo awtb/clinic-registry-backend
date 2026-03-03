@@ -7,9 +7,9 @@ from clinic_registry.core.enums.log import LogAction
 from clinic_registry.core.enums.log import LogEntity
 from clinic_registry.core.errors.auth import UserAlreadyExistsError
 from clinic_registry.core.errors.common import NotFoundError
-from clinic_registry.core.helpers.auth import AuthHelper
 from clinic_registry.core.policies.user import UserPolicy
 from clinic_registry.core.repos.user import UserRepository
+from clinic_registry.core.security.hasher import PasswordHasher
 from clinic_registry.core.services.log import LogService
 
 
@@ -17,12 +17,12 @@ class UserService:
     def __init__(
         self,
         repo: UserRepository,
-        auth_helper: AuthHelper,
+        password_hasher: PasswordHasher,
         log_service: LogService,
         policy: UserPolicy,
     ) -> None:
         self._repo = repo
-        self._auth_helper = auth_helper
+        self._password_hasher = password_hasher
         self._log_service = log_service
         self._policy = policy
 
@@ -56,7 +56,7 @@ class UserService:
         await self._validate_user_email(dto.email)
         await self._validate_username(dto.username)
 
-        password_hash = self._auth_helper.hash_password(dto.password)
+        password_hash = self._password_hasher.hash_password(dto.password)
 
         created_user = await self._repo.create_user(
             username=dto.username,
@@ -97,7 +97,7 @@ class UserService:
             await self._validate_username(dto.username, user_for_update.id)
 
         hashed_password = (
-            self._auth_helper.hash_password(dto.password)
+            self._password_hasher.hash_password(dto.password)
             if dto.password is not None
             else None
         )
