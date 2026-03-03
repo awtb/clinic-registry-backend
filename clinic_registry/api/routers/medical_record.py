@@ -3,11 +3,11 @@ from fastapi import Depends
 from fastapi import Path
 from fastapi import status
 
-from clinic_registry.api.mappers import record_create_schema_to_dto
-from clinic_registry.api.mappers import record_update_schema_to_dto
 from clinic_registry.api.dependencies.auth import get_current_user
 from clinic_registry.api.dependencies.common import get_pagination_params
 from clinic_registry.api.dependencies.medical_record import get_record_service
+from clinic_registry.api.mappers import record_create_schema_to_dto
+from clinic_registry.api.mappers import record_update_schema_to_dto
 from clinic_registry.api.schemas.base import Page
 from clinic_registry.api.schemas.base import PaginationParams
 from clinic_registry.api.schemas.medical_record import RecordCreateSchema
