@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - db
-    command: [ 'uv', 'run', 'scripts/prod.sh' ]
+    command: [ 'uv', 'run', 'make', 'prod' ]
     ports:
       - ${SERVING_PORT:-8000}:${SERVING_PORT:-8000}
     environment:
