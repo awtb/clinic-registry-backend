@@ -1,7 +1,12 @@
-.PHONY: migrate dev prod pre-commit
+.PHONY: install migrate dev prod pre-commit
 
 PYRUN = PYTHONPATH="$(CURDIR)/src:$$PYTHONPATH" uv run python -m
 APP = $(PYRUN) clinic_registry
+
+install:
+	uv venv .venv
+	uv sync --frozen
+	uv run pre-commit install
 
 migrate:
 	uv run alembic upgrade head
