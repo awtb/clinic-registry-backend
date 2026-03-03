@@ -10,6 +10,7 @@ from clinic_registry.core.dto.base import PageDTO
 from clinic_registry.core.dto.patient import PatientDTO
 from clinic_registry.core.enums.patient import PatientGender
 from clinic_registry.core.repos.base import BaseRepository
+from clinic_registry.db.mappers import patient_to_dto
 from clinic_registry.db.models import Patient
 
 
@@ -66,7 +67,7 @@ class PatientRepository(BaseRepository):
         await self._session.commit()
         await self._session.refresh(patient_obj)
 
-        return patient_obj.to_dto()
+        return patient_to_dto(patient_obj)
 
     async def update_patient(
         self,
@@ -110,7 +111,7 @@ class PatientRepository(BaseRepository):
         res = await self._session.execute(stmt)
         first_row = res.scalars().first()
 
-        return first_row.to_dto() if first_row else None
+        return patient_to_dto(first_row) if first_row else None
 
     async def fetch_all_patients(
         self,
@@ -136,7 +137,7 @@ class PatientRepository(BaseRepository):
             query=stmt,
             page=page,
             page_size=page_size,
-            mapper_fn=lambda model: model.to_dto(),
+            mapper_fn=patient_to_dto,
         )
 
         return needed_page

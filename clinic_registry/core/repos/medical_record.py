@@ -8,6 +8,7 @@ from sqlalchemy.orm import selectinload
 from clinic_registry.core.dto.base import PageDTO
 from clinic_registry.core.dto.medical_record import MedicalRecordDTO
 from clinic_registry.core.repos.base import BaseRepository
+from clinic_registry.db.mappers import medical_record_to_dto
 from clinic_registry.db.models import MedicalRecord
 
 
@@ -42,7 +43,11 @@ class MedicalRecordRepository(BaseRepository):
         res = await self._session.execute(stmt)
         medical_record = res.scalars().first()
 
-        return medical_record.to_dto() if medical_record else model.to_dto()
+        return (
+            medical_record_to_dto(medical_record)
+            if medical_record
+            else medical_record_to_dto(model)
+        )
 
     async def get_record_by_id_or_none(
         self,
@@ -56,7 +61,7 @@ class MedicalRecordRepository(BaseRepository):
         res = await self._session.execute(stmt)
         first_row = res.scalars().first()
 
-        return first_row.to_dto() if first_row else None
+        return medical_record_to_dto(first_row) if first_row else None
 
     async def fetch_all_medical_records(
         self,
@@ -73,7 +78,7 @@ class MedicalRecordRepository(BaseRepository):
             query=stmt,
             page=page,
             page_size=page_size,
-            mapper_fn=lambda model: model.to_dto(),
+            mapper_fn=medical_record_to_dto,
         )
 
         return needed_page

@@ -9,6 +9,7 @@ from clinic_registry.core.dto.base import PageDTO
 from clinic_registry.core.dto.user import UserDTO
 from clinic_registry.core.enums.user import UserRole
 from clinic_registry.core.repos.base import BaseRepository
+from clinic_registry.db.mappers import user_to_dto
 from clinic_registry.db.models import User
 
 
@@ -67,7 +68,7 @@ class UserRepository(BaseRepository):
             query=stmt,
             page=page,
             page_size=page_size,
-            mapper_fn=lambda model: model.to_dto(),
+            mapper_fn=user_to_dto,
         )
 
         return needed_page
@@ -93,7 +94,7 @@ class UserRepository(BaseRepository):
 
         await self._session.commit()
         await self._session.refresh(model)
-        return model.to_dto()
+        return user_to_dto(model)
 
     async def get_user_by_id(self, user_id: str) -> UserDTO | None:
         stmt = select(User).where(User.id == user_id)
@@ -101,7 +102,7 @@ class UserRepository(BaseRepository):
         res = await self._session.execute(stmt)
         first_row = res.scalars().first()
 
-        return first_row.to_dto() if first_row else None
+        return user_to_dto(first_row) if first_row else None
 
     async def get_user_by_email(self, email: str) -> UserDTO | None:
         stmt = select(User).where(User.email == email)
@@ -109,7 +110,7 @@ class UserRepository(BaseRepository):
         res = await self._session.execute(stmt)
         first_row = res.scalars().first()
 
-        return first_row.to_dto() if first_row else None
+        return user_to_dto(first_row) if first_row else None
 
     async def update_user(
         self,

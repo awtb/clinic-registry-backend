@@ -8,6 +8,7 @@ from clinic_registry.core.dto.log import LogDTO
 from clinic_registry.core.enums.log import LogAction
 from clinic_registry.core.enums.log import LogEntity
 from clinic_registry.core.repos.base import BaseRepository
+from clinic_registry.db.mappers import log_to_dto
 from clinic_registry.db.models import Log
 
 
@@ -71,7 +72,7 @@ class LogRepository(BaseRepository):
             query=stmt,
             page=page,
             page_size=page_size,
-            mapper_fn=lambda model: model.to_dto(),
+            mapper_fn=log_to_dto,
         )
 
         return needed_page
