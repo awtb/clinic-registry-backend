@@ -8,7 +8,6 @@ from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from ulid import ULID
 
-from clinic_registry.core.dto.medical_record import MedicalRecordDTO
 from clinic_registry.db.models.base import BaseModel
 from clinic_registry.db.models.patient import Patient
 from clinic_registry.db.models.user import User
@@ -48,18 +47,3 @@ class MedicalRecord(BaseModel):
         foreign_keys=[patient_id],
     )
     procedures: Mapped[str] = mapped_column(String(), nullable=False)
-
-    def to_dto(self) -> MedicalRecordDTO:
-        return MedicalRecordDTO(
-            id=self.id,
-            patient_id=self.patient_id,
-            patient=self.patient.to_dto(),
-            diagnosis=self.diagnosis,
-            treatment=self.treatment,
-            created_at=self.created_at,
-            updated_at=self.updated_at,
-            chief_complaint=self.chief_complaint,
-            creator_id=self.creator_id,
-            procedures=self.procedures,
-            creator=self.creator.to_dto(),
-        )

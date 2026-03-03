@@ -10,7 +10,6 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from ulid import ULID
 
-from clinic_registry.core.dto.log import LogDTO
 from clinic_registry.core.enums.log import LogAction
 from clinic_registry.core.enums.log import LogEntity
 from clinic_registry.db.models.base import BaseModel
@@ -60,16 +59,3 @@ class Log(BaseModel):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(), nullable=False, default=datetime.now
     )
-
-    def to_dto(self) -> LogDTO:
-        return LogDTO(
-            id=self.id,
-            actor_id=self.actor_id,
-            action=LogAction(self.action),
-            entity_id=self.entity_id,
-            entity_type=LogEntity(self.entity_type),
-            entity_before=self.entity_before,
-            entity_after=self.entity_after,
-            metadata=self.meta,
-            created_at=self.created_at,
-        )
