@@ -1,4 +1,4 @@
-.PHONY: install migrate dev prod pre-commit
+.PHONY: install migrate dev prod pre-commit test
 
 PYRUN = PYTHONPATH="$(CURDIR)/src:$$PYTHONPATH" uv run python -m
 APP = $(PYRUN) clinic_registry
@@ -19,3 +19,6 @@ prod: migrate
 
 pre-commit:
 	uv run pre-commit run --all-files
+
+test:
+	uv run pytest
