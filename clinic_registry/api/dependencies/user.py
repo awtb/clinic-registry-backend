@@ -5,6 +5,7 @@ from clinic_registry.api.dependencies.common import get_session
 from clinic_registry.api.dependencies.common import get_settings
 from clinic_registry.api.dependencies.log import get_log_service
 from clinic_registry.core.helpers.auth import AuthHelper
+from clinic_registry.core.policies.user import UserPolicy
 from clinic_registry.core.repos.user import UserRepository
 from clinic_registry.core.services.log import LogService
 from clinic_registry.core.services.service import UserService
@@ -17,8 +18,13 @@ def get_user_repository(
     return UserRepository(session)
 
 
+def get_user_policy() -> UserPolicy:
+    return UserPolicy()
+
+
 def get_user_service(
     user_repo: UserRepository = Depends(get_user_repository),
+    user_policy: UserPolicy = Depends(get_user_policy),
     settings: Settings = Depends(get_settings),
     log_service: LogService = Depends(get_log_service),
 ) -> UserService:
@@ -27,4 +33,4 @@ def get_user_service(
         access_token_exp=settings.jwt_access_token_expiration_minutes,
         refresh_token_exp=settings.jwt_refresh_token_expiration_minutes,
     )
-    return UserService(user_repo, auth_helper, log_service)
+    return UserService(user_repo, auth_helper, log_service, user_policy)

@@ -5,10 +5,9 @@ from clinic_registry.core.dto.patient import PatientUpdateDTO
 from clinic_registry.core.dto.user import CurrentUserDTO
 from clinic_registry.core.enums.log import LogAction
 from clinic_registry.core.enums.log import LogEntity
-from clinic_registry.core.enums.user import UserRole
 from clinic_registry.core.errors.common import AlreadyExistsError
-from clinic_registry.core.errors.common import NotAllowedError
 from clinic_registry.core.errors.common import NotFoundError
+from clinic_registry.core.policies.patient import PatientPolicy
 from clinic_registry.core.repos.patient import PatientRepository
 from clinic_registry.core.services.log import LogService
 
@@ -18,9 +17,11 @@ class PatientService:
         self,
         patient_repo: PatientRepository,
         log_service: LogService,
+        policy: PatientPolicy,
     ) -> None:
         self._patient_repo = patient_repo
         self._log_service = log_service
+        self._policy = policy
 
     async def get_patient(self, patient_id: str) -> PatientDTO:
         patient = await self._patient_repo.get_patient_by_id_or_none(
@@ -35,9 +36,7 @@ class PatientService:
     async def update_patient(
         self, current_user: CurrentUserDTO, request: PatientUpdateDTO
     ) -> PatientDTO:
-        # TODO(Ilyas): we should have separate method for RBAC checks.
-        if current_user.role != UserRole.admin:
-            raise NotAllowedError("Only admins can update patients")
+        self._policy.authorize_update_patient(current_user)
 
         if request.passport_number is not None:
             await self._validate_patient_passport(

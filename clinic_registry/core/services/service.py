@@ -5,11 +5,10 @@ from clinic_registry.core.dto.user import UserDTO
 from clinic_registry.core.dto.user import UserUpdateDTO
 from clinic_registry.core.enums.log import LogAction
 from clinic_registry.core.enums.log import LogEntity
-from clinic_registry.core.enums.user import UserRole
 from clinic_registry.core.errors.auth import UserAlreadyExistsError
-from clinic_registry.core.errors.common import NotAllowedError
 from clinic_registry.core.errors.common import NotFoundError
 from clinic_registry.core.helpers.auth import AuthHelper
+from clinic_registry.core.policies.user import UserPolicy
 from clinic_registry.core.repos.user import UserRepository
 from clinic_registry.core.services.log import LogService
 
@@ -20,10 +19,12 @@ class UserService:
         repo: UserRepository,
         auth_helper: AuthHelper,
         log_service: LogService,
+        policy: UserPolicy,
     ) -> None:
         self._repo = repo
         self._auth_helper = auth_helper
         self._log_service = log_service
+        self._policy = policy
 
     async def fetch_all_users(
         self,
@@ -50,8 +51,7 @@ class UserService:
         current_user: CurrentUserDTO,
         dto: UserCreateDTO,
     ) -> UserDTO:
-        if current_user.role != UserRole.admin:
-            raise NotAllowedError("Only admins can create users")
+        self._policy.authorize_create_user(current_user)
 
         await self._validate_user_email(dto.email)
         await self._validate_username(dto.username)
@@ -82,14 +82,13 @@ class UserService:
         user_for_update: UserDTO,
         dto: UserUpdateDTO,
     ) -> UserDTO:
-        if (
-            current_user.role != UserRole.admin
-            and current_user.id != user_for_update.id
-        ):
-            raise NotAllowedError("Only admins can update other users")
+        self._policy.authorize_update_user(
+            actor=current_user,
+            user_for_update=user_for_update,
+        )
 
-        if dto.role is not None and current_user.role != UserRole.admin:
-            raise NotAllowedError("Only admins can change roles")
+        if dto.role is not None:
+            self._policy.authorize_change_user_role(current_user)
 
         if dto.email is not None:
             await self._validate_user_email(dto.email, user_for_update.id)
