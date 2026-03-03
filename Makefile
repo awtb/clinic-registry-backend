@@ -1,12 +1,16 @@
-.PHONY: dev prod pre-commit
+.PHONY: migrate dev prod pre-commit
 
-dev:
-	PYTHONPATH="$(CURDIR)/src:$$PYTHONPATH" python -m alembic upgrade head
-	PYTHONPATH="$(CURDIR)/src:$$PYTHONPATH" python -m clinic_registry --reload --host=localhost
+PYRUN = PYTHONPATH="$(CURDIR)/src:$$PYTHONPATH" uv run python -m
+APP = $(PYRUN) clinic_registry
 
-prod:
-	PYTHONPATH="$(CURDIR)/src:$$PYTHONPATH" python -m alembic upgrade head
-	PYTHONPATH="$(CURDIR)/src:$$PYTHONPATH" python -m clinic_registry
+migrate:
+	uv run alembic upgrade head
+
+dev: migrate
+	$(APP) --reload
+
+prod: migrate
+	$(APP)
 
 pre-commit:
 	uv run pre-commit run --all-files
