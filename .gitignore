@@ -102,3 +102,6 @@ venv.bak/
 
 # JetBrains related
 *.idea
+
+# VS Code related
+.vscode
