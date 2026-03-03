@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     jwt_secret_key: str
     jwt_access_token_expiration_minutes: int = 30
     jwt_refresh_token_expiration_minutes: int = 80
+    serving_host: str = "0.0.0.0"
+    serving_port: int = 8000
+    serving_workers_count: int = 1
 
     logging_lvl: str = "INFO"
     logging_fmt: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

@@ -2,6 +2,7 @@ import uvicorn
 from typer import Option
 from typer import Typer
 
+from clinic_registry.settings import Settings
 
 app = Typer()
 
@@ -11,19 +12,15 @@ def start_app(
     reload: bool = Option(
         default=False,
     ),
-    workers: int = Option(
-        default=1,
-    ),
-    host: str = Option(
-        default="0.0.0.0",
-    ),
 ) -> None:
+    settings = Settings()  # type: ignore
     uvicorn.run(
         "clinic_registry.api.app:build_app",
         reload=reload,
-        workers=workers,
+        workers=settings.serving_workers_count,
         factory=True,
-        host=host,
+        host=settings.serving_host,
+        port=settings.serving_port,
     )
 
 
