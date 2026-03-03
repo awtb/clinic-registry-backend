@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from datetime import datetime
 
 from clinic_registry.core.enums.user import UserRole
-from clinic_registry.core.helpers.auth import AuthHelper
+from clinic_registry.core.security.hasher import PasswordHasher
 
 # revision identifiers, used by Alembic.
 revision: str = "f4cb16d8bb59"
@@ -63,7 +63,7 @@ def upgrade() -> None:
                 "is_active": True,
                 "created_at": now,
                 "updated_at": now,
-                "password_hash": AuthHelper.hash_password(ROOT_USER_PASSWORD),
+                "password_hash": PasswordHasher.hash_password(ROOT_USER_PASSWORD),
             }
         ],
     )
