@@ -1,19 +1,8 @@
+from collections.abc import Callable
+
 from fastapi.testclient import TestClient
 
 from clinic_registry.core.enums.user import UserRole
-
-
-def _auth_headers(access_token: str) -> dict[str, str]:
-    return {"Authorization": f"Bearer {access_token}"}
-
-
-def _login(client: TestClient, email: str, password: str) -> str:
-    response = client.post(
-        "/auth/token",
-        data={"username": email, "password": password},
-    )
-    assert response.status_code == 200
-    return response.json()["access_token"]
 
 
 def test_users_require_authentication(client: TestClient) -> None:
@@ -27,16 +16,12 @@ def test_users_require_authentication(client: TestClient) -> None:
 def test_admin_can_fetch_profile_and_users_page(
     client: TestClient,
     seeded_users: dict[str, dict[str, str]],
+    admin_token: str,
+    bearer_headers: Callable[[str], dict[str, str]],
 ) -> None:
-    admin_token = _login(
-        client,
-        seeded_users["admin"]["email"],
-        seeded_users["admin"]["password"],
-    )
-
     profile_response = client.get(
         "/users/me",
-        headers=_auth_headers(admin_token),
+        headers=bearer_headers(admin_token),
     )
     assert profile_response.status_code == 200
     profile_payload = profile_response.json()
@@ -46,7 +31,7 @@ def test_admin_can_fetch_profile_and_users_page(
 
     users_response = client.get(
         "/users/",
-        headers=_auth_headers(admin_token),
+        headers=bearer_headers(admin_token),
         params={"page": 1, "page_size": 10},
     )
     assert users_response.status_code == 200
@@ -61,17 +46,12 @@ def test_admin_can_fetch_profile_and_users_page(
 
 def test_admin_can_create_user(
     client: TestClient,
-    seeded_users: dict[str, dict[str, str]],
+    admin_token: str,
+    bearer_headers: Callable[[str], dict[str, str]],
 ) -> None:
-    admin_token = _login(
-        client,
-        seeded_users["admin"]["email"],
-        seeded_users["admin"]["password"],
-    )
-
     create_response = client.post(
         "/users/",
-        headers=_auth_headers(admin_token),
+        headers=bearer_headers(admin_token),
         json={
             "username": "alice",
             "first_name": "Alice",
@@ -89,7 +69,7 @@ def test_admin_can_create_user(
 
     search_response = client.get(
         "/users/",
-        headers=_auth_headers(admin_token),
+        headers=bearer_headers(admin_token),
         params={"search_query": "Alice", "page": 1, "page_size": 10},
     )
     assert search_response.status_code == 200
@@ -100,16 +80,12 @@ def test_admin_can_create_user(
 
 def test_regular_user_cannot_create_other_users(
     client: TestClient,
-    seeded_users: dict[str, dict[str, str]],
+    user_token: str,
+    bearer_headers: Callable[[str], dict[str, str]],
 ) -> None:
-    user_token = _login(
-        client,
-        seeded_users["user"]["email"],
-        seeded_users["user"]["password"],
-    )
     response = client.post(
         "/users/",
-        headers=_auth_headers(user_token),
+        headers=bearer_headers(user_token),
         json={
             "username": "forbidden_create",
             "first_name": "Forbidden",
@@ -127,16 +103,12 @@ def test_regular_user_cannot_create_other_users(
 def test_regular_user_permissions_on_update(
     client: TestClient,
     seeded_users: dict[str, dict[str, str]],
+    user_token: str,
+    bearer_headers: Callable[[str], dict[str, str]],
 ) -> None:
-    user_token = _login(
-        client,
-        seeded_users["user"]["email"],
-        seeded_users["user"]["password"],
-    )
-
     update_other_response = client.patch(
         f"/users/{seeded_users['admin']['id']}",
-        headers=_auth_headers(user_token),
+        headers=bearer_headers(user_token),
         json={"first_name": "NotAllowed"},
     )
     assert update_other_response.status_code == 403
@@ -147,7 +119,7 @@ def test_regular_user_permissions_on_update(
 
     change_role_response = client.patch(
         f"/users/{seeded_users['user']['id']}",
-        headers=_auth_headers(user_token),
+        headers=bearer_headers(user_token),
         json={"role": UserRole.admin.value},
     )
     assert change_role_response.status_code == 403
@@ -158,7 +130,7 @@ def test_regular_user_permissions_on_update(
 
     update_self_response = client.patch(
         f"/users/{seeded_users['user']['id']}",
-        headers=_auth_headers(user_token),
+        headers=bearer_headers(user_token),
         json={"first_name": "Updated", "last_name": "Profile"},
     )
     assert update_self_response.status_code == 200
@@ -171,16 +143,12 @@ def test_regular_user_permissions_on_update(
 def test_admin_can_change_other_user_role(
     client: TestClient,
     seeded_users: dict[str, dict[str, str]],
+    admin_token: str,
+    bearer_headers: Callable[[str], dict[str, str]],
 ) -> None:
-    admin_token = _login(
-        client,
-        seeded_users["admin"]["email"],
-        seeded_users["admin"]["password"],
-    )
-
     change_role_response = client.patch(
         f"/users/{seeded_users['user']['id']}",
-        headers=_auth_headers(admin_token),
+        headers=bearer_headers(admin_token),
         json={"role": UserRole.admin.value},
     )
     assert change_role_response.status_code == 200

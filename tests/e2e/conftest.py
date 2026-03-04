@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from collections.abc import Iterator
 
 import pytest
@@ -90,3 +91,46 @@ def seeded_users(sync_db_engine: Engine) -> dict[str, dict[str, str]]:
             "password": user_password,
         },
     }
+
+
+@pytest.fixture
+def bearer_headers() -> Callable[[str], dict[str, str]]:
+    def _bearer_headers(access_token: str) -> dict[str, str]:
+        return {"Authorization": f"Bearer {access_token}"}
+
+    return _bearer_headers
+
+
+@pytest.fixture
+def login(client: TestClient) -> Callable[[str, str], str]:
+    def _login(email: str, password: str) -> str:
+        response = client.post(
+            "/auth/token",
+            data={"username": email, "password": password},
+        )
+        assert response.status_code == 200
+        return response.json()["access_token"]
+
+    return _login
+
+
+@pytest.fixture
+def admin_token(
+    login: Callable[[str, str], str],
+    seeded_users: dict[str, dict[str, str]],
+) -> str:
+    return login(
+        seeded_users["admin"]["email"],
+        seeded_users["admin"]["password"],
+    )
+
+
+@pytest.fixture
+def user_token(
+    login: Callable[[str, str], str],
+    seeded_users: dict[str, dict[str, str]],
+) -> str:
+    return login(
+        seeded_users["user"]["email"],
+        seeded_users["user"]["password"],
+    )
