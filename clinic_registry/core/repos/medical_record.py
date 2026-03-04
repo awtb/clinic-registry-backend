@@ -57,6 +57,7 @@ class MedicalRecordRepository(BaseRepository):
             select(MedicalRecord)
             .where(MedicalRecord.id == medical_record_id)
             .options(selectinload(MedicalRecord.patient))
+            .options(selectinload(MedicalRecord.creator))
         )
         res = await self._session.execute(stmt)
         first_row = res.scalars().first()
