@@ -10,6 +10,9 @@ from clinic_registry.api.dependencies.log import get_log_service
 from clinic_registry.api.schemas.base import Page
 from clinic_registry.api.schemas.base import PaginationParams
 from clinic_registry.api.schemas.log import LogResponse
+from clinic_registry.core.dto.base import PageDTO
+from clinic_registry.core.dto.log import LogDTO
+from clinic_registry.core.dto.user import CurrentUserDTO
 from clinic_registry.core.enums.log import LogAction
 from clinic_registry.core.enums.log import LogEntity
 from clinic_registry.core.services.log import LogService
@@ -28,6 +31,7 @@ router = APIRouter(
 )
 async def get_logs(
     log_service: LogService = Depends(get_log_service),
+    current_user: CurrentUserDTO = Depends(get_current_user),
     pagination_params: PaginationParams = Depends(get_pagination_params),
     actor_id: str | None = Query(
         default=None,
@@ -53,8 +57,9 @@ async def get_logs(
         default=None,
         description="Filter by creation timestamp (inclusive end)",
     ),
-):
+) -> PageDTO[LogDTO]:
     logs_page = await log_service.get_logs(
+        current_user=current_user,
         page=pagination_params.page,
         page_size=pagination_params.page_size,
         actor_id=actor_id,

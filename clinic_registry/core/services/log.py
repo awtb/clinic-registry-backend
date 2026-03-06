@@ -9,14 +9,17 @@ from typing import Any
 from clinic_registry.core.dto.base import BaseDTO
 from clinic_registry.core.dto.base import PageDTO
 from clinic_registry.core.dto.log import LogDTO
+from clinic_registry.core.dto.user import CurrentUserDTO
 from clinic_registry.core.enums.log import LogAction
 from clinic_registry.core.enums.log import LogEntity
+from clinic_registry.core.policies.log import LogPolicy
 from clinic_registry.core.repos.log import LogRepository
 
 
 class LogService:
-    def __init__(self, log_repo: LogRepository) -> None:
+    def __init__(self, log_repo: LogRepository, log_policy: LogPolicy) -> None:
         self._log_repo = log_repo
+        self._log_policy = log_policy
 
     async def log(
         self,
@@ -42,6 +45,7 @@ class LogService:
         self,
         page: int,
         page_size: int,
+        current_user: CurrentUserDTO,
         actor_id: str | None = None,
         entity_type: LogEntity | None = None,
         action: LogAction | None = None,
@@ -50,6 +54,9 @@ class LogService:
         created_from: datetime | None = None,
         created_to: datetime | None = None,
     ) -> PageDTO[LogDTO]:
+        self._log_policy.authorize_view_logs(
+            actor=current_user,
+        )
         return await self._log_repo.get_logs(
             page=page,
             page_size=page_size,

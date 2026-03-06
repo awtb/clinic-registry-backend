@@ -27,13 +27,3 @@ async def login(
     response = await auth_service.login(dto)
 
     return response
-
-
-@router.post("/register", summary="Register user")
-async def register():
-    raise NotImplementedError()
-
-
-@router.post("/refresh", summary="Refresh token")
-async def refresh():
-    raise NotImplementedError()

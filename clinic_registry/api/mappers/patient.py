@@ -5,7 +5,9 @@ from clinic_registry.core.dto.patient import PatientDTO
 from clinic_registry.core.dto.patient import PatientUpdateDTO
 
 
-def patient_create_schema_to_dto(schema: PatientCreateSchema) -> PatientCreateDTO:
+def patient_create_schema_to_dto(
+    schema: PatientCreateSchema,
+) -> PatientCreateDTO:
     return PatientCreateDTO(
         gender=schema.gender,
         first_name=schema.first_name,
