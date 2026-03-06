@@ -1,13 +1,13 @@
-import asyncio
 import os
 import subprocess
 from collections.abc import Iterator
 
 import pytest
+from sqlalchemy import create_engine
+from sqlalchemy import Engine
 from sqlalchemy import URL
 from sqlalchemy.engine import make_url
-from sqlalchemy.ext.asyncio import AsyncEngine
-from sqlalchemy.ext.asyncio import create_async_engine
+from testcontainers.postgres import PostgresContainer
 
 from clinic_registry.settings import get_settings
 from clinic_registry.settings import Settings
@@ -27,6 +27,28 @@ def _db_overrides_from_settings(settings: Settings) -> dict[str, str]:
     }
 
 
+def _init_postgres_container(
+    testing_settings: TestInfraSettings,
+) -> PostgresContainer:
+    postgres_container = PostgresContainer(
+        image=testing_settings.testcontainer_postgres_image,
+        dbname=testing_settings.db_name,
+        username=testing_settings.db_user,
+        password=testing_settings.db_password,
+    )
+    postgres_container.start()
+
+    return postgres_container
+
+
+def reset_env_to_previous_state(previous_env: dict[str, str | None]) -> None:
+    for key, value in previous_env.items():
+        if value is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = value
+
+
 @pytest.fixture(scope="session")
 def testing_settings() -> TestInfraSettings:
     return load_test_infra_settings()
@@ -41,18 +63,10 @@ def db_overrides(
         yield _db_overrides_from_settings(external_settings)
         return
 
-    from testcontainers.postgres import PostgresContainer
-
-    postgres_container = PostgresContainer(
-        image=testing_settings.testcontainer_postgres_image,
-        dbname=testing_settings.db_name,
-        username=testing_settings.db_user,
-        password=testing_settings.db_password,
-    )
-    postgres_container.start()
+    container = _init_postgres_container(testing_settings)
+    parsed_url = make_url(container.get_connection_url())
 
     try:
-        parsed_url = make_url(postgres_container.get_connection_url())
         yield {
             "DB_HOST": parsed_url.host or "localhost",
             "DB_PORT": str(parsed_url.port or 5432),
@@ -61,7 +75,7 @@ def db_overrides(
             "DB_PASSWORD": parsed_url.password or testing_settings.db_password,
         }
     finally:
-        postgres_container.stop()
+        container.stop()
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -79,11 +93,7 @@ def setup_testing_environment(
     try:
         yield
     finally:
-        for key, value in previous_env.items():
-            if value is None:
-                os.environ.pop(key, None)
-            else:
-                os.environ[key] = value
+        reset_env_to_previous_state(previous_env)
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -116,15 +126,15 @@ def app_settings(setup_testing_environment: None) -> Settings:
 
 
 @pytest.fixture(scope="session")
-def db_engine(app_settings: Settings) -> Iterator[AsyncEngine]:
+def sync_db_engine(app_settings: Settings) -> Iterator[Engine]:
     db_url = URL.create(
-        drivername=app_settings.db_driver,
+        drivername=app_settings.db_sync_driver,
         username=app_settings.db_user,
         password=app_settings.db_password,
         host=app_settings.db_host,
         port=app_settings.db_port,
         database=app_settings.db_name,
     )
-    engine = create_async_engine(db_url)
+    engine = create_engine(db_url)
     yield engine
-    asyncio.run(engine.dispose())
+    engine.dispose()
