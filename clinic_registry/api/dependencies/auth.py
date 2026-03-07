@@ -1,5 +1,3 @@
-import logging
-
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 
@@ -16,8 +14,6 @@ from clinic_registry.core.services.log import LogService
 from clinic_registry.settings import Settings
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
-
-logger = logging.getLogger("clinic_registry.api.dependencies.auth")
 
 
 def get_password_hasher() -> PasswordHasher:
@@ -52,8 +48,6 @@ async def get_current_user(
     access_token: str = Depends(oauth2_scheme),
     auth_service: AuthService = Depends(get_auth_service),
 ) -> CurrentUserDTO:
-    logger.debug("Token from header %s", access_token)
-
     if not access_token:
         raise NotAllowedError("Access token not provided")
 

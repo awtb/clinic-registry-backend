@@ -1,7 +1,7 @@
-import logging
 from collections.abc import AsyncGenerator
 from typing import Any
 
+import structlog
 from fastapi import Depends
 from fastapi import Query
 from fastapi import Request
@@ -11,6 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from clinic_registry.api.schemas.base import PaginationParams
 from clinic_registry.core.errors.common import Error
 from clinic_registry.settings import Settings
+
+logger = structlog.get_logger(__name__)
 
 
 def get_settings(request: Request) -> Settings:
@@ -36,8 +38,8 @@ async def get_session(
     except Error as error:
         await session.rollback()
         raise error
-    except Exception as error:
-        logging.error(msg="An error occurred", exc_info=error)
+    except Exception:
+        logger.exception("Unhandled session error")
         await session.rollback()
         raise
     finally:
