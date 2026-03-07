@@ -2,6 +2,7 @@ import uvicorn
 from typer import Option
 from typer import Typer
 
+from clinic_registry.logging import build_logging_config
 from clinic_registry.settings import get_settings
 
 app = Typer()
@@ -14,6 +15,8 @@ def start_app(
     ),
 ) -> None:
     settings = get_settings()
+    log_config = build_logging_config(settings)
+
     uvicorn.run(
         "clinic_registry.api.app:build_app",
         reload=reload,
@@ -21,6 +24,8 @@ def start_app(
         factory=True,
         host=settings.serving_host,
         port=settings.serving_port,
+        log_config=log_config,
+        access_log=False,
     )
 
 

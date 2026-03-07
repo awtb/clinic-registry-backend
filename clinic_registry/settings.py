@@ -20,8 +20,9 @@ class Settings(BaseSettings):
     serving_port: int = 8000
     serving_workers_count: int = 1
 
+    logging_mode: str = "plain"
     logging_lvl: str = "INFO"
-    logging_fmt: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    service_name: str = "clinic-registry-backend"
 
     cors_allow_origins: list[str] = ["*"]
     cors_allow_headers: list[str] = ["*"]
