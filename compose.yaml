@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - db
-    command: [ 'uv', 'run', 'make', 'prod' ]
+    command: ["uv", "run", "make", "prod"]
     ports:
       - ${SERVING_PORT:-8000}:${SERVING_PORT:-8000}
     environment:
@@ -21,24 +21,21 @@ services:
       JWT_HASHING_ALGORITHM: ${JWT_HASHING_ALGORITHM:-HS256}
       JWT_ACCESS_TOKEN_EXPIRATION_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES:-30}
       JWT_REFRESH_TOKEN_EXPIRATION_MINUTES: ${JWT_REFRESH_TOKEN_EXPIRATION_MINUTES:-80}
+      LOGGING_MODE: ${LOGGING_MODE:-plain}
       LOGGING_LVL: ${LOGGING_LVL:-}
-      LOGGING_FMT: ${LOGGING_FMT:-}
+      SERVICE_NAME: ${SERVICE_NAME:-clinic-registry-backend}
       CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-}
       CORS_ALLOW_HEADERS: ${CORS_ALLOW_HEADERS:-}
       CORS_ALLOW_METHODS: ${CORS_ALLOW_METHODS:-}
       CORS_ALLOW_CREDENTIALS: ${CORS_ALLOW_CREDENTIALS:-}
-
   db:
     image: postgres:17
     volumes:
       - pgdata:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-clinica}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-clinica}
-      POSTGRES_DB: ${POSTGRES_DB:-clinica}
-
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${POSTGRES_USER:-clinic_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-clinic_registry}
+      POSTGRES_DB: ${POSTGRES_DB:-clinic_registry}
 
 volumes:
   pgdata:

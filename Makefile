@@ -15,7 +15,7 @@ dev: migrate
 	$(APP) --reload
 
 prod: migrate
-	$(APP)
+	LOGGING_MODE=structured $(APP)
 
 pre-commit:
 	uv run pre-commit run --all-files
