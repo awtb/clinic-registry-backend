@@ -8,7 +8,6 @@ from sqlalchemy import select
 from clinic_registry.core.dto.dashboard import DashboardCountDTO
 from clinic_registry.core.enums.log import LogAction
 from clinic_registry.core.enums.log import LogEntity
-from clinic_registry.core.enums.patient import PatientGender
 from clinic_registry.core.enums.user import UserRole
 from clinic_registry.core.repos.base import BaseRepository
 from clinic_registry.db.models import Log
@@ -93,17 +92,6 @@ class DashboardRepository(BaseRepository):
         rows = (await self._session.execute(stmt)).all()
 
         return {UserRole(role): int(total) for role, total in rows}
-
-    async def get_patients_by_gender(self) -> dict[PatientGender, int]:
-        stmt = select(
-            Patient.gender,
-            func.count(Patient.id),
-        ).group_by(
-            Patient.gender,
-        )
-        rows = (await self._session.execute(stmt)).all()
-
-        return {PatientGender(gender): int(total) for gender, total in rows}
 
     async def get_logs_by_entity(self) -> dict[LogEntity, int]:
         stmt = select(

@@ -28,7 +28,6 @@ class DashboardService:
 
         active_users = await self._repo.get_active_users_count()
         users_by_role = await self._repo.get_users_by_role()
-        genders_overview = await self._repo.get_patients_by_gender()
         logs_by_entity = await self._repo.get_logs_by_entity()
         logs_by_action = await self._repo.get_logs_by_action()
 
@@ -39,7 +38,6 @@ class DashboardService:
             active_users_count=active_users,
             breakdown=DashboardBreakdownDTO(
                 users_by_role=users_by_role,
-                patients_by_gender=genders_overview,
                 logs_by_entity=logs_by_entity,
                 logs_by_action=logs_by_action,
             ),

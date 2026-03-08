@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from clinic_registry.core.dto.base import BaseDTO
 from clinic_registry.core.enums.log import LogAction
 from clinic_registry.core.enums.log import LogEntity
-from clinic_registry.core.enums.patient import PatientGender
 from clinic_registry.core.enums.user import UserRole
 
 
@@ -18,7 +17,6 @@ class DashboardCountDTO(BaseDTO):
 @dataclass
 class DashboardBreakdownDTO(BaseDTO):
     users_by_role: dict[UserRole, int]
-    patients_by_gender: dict[PatientGender, int]
     logs_by_entity: dict[LogEntity, int]
     logs_by_action: dict[LogAction, int]
 
