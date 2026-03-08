@@ -4,7 +4,7 @@
 [![Pre-commit](https://img.shields.io/github/actions/workflow/status/awtb/clinic-registry-backend/pre-commit.yml?label=pre-commit&style=for-the-badge)](https://github.com/awtb/clinic-registry-backend/actions/workflows/pre-commit.yml)
 [![Coverage](https://img.shields.io/badge/coverage-pytest%20in%20CI-0A7BBB?style=for-the-badge)](https://github.com/awtb/clinic-registry-backend/actions/workflows/tests.yml)
 [![Python 3.13](https://img.shields.io/badge/python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![License MIT](https://img.shields.io/github/license/awtb/clinic-registry-backend?style=for-the-badge)](./LICENSE)
+[![License MIT](https://img.shields.io/github/license/awtb/clinic-registry-backend?style=for-the-badge&v=2)](./LICENSE)
 
 Backend API for **clinic-registry**.
 
