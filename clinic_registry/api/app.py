@@ -20,8 +20,6 @@ from clinic_registry.settings import Settings
 
 def load_settings(app_instance: FastAPI) -> Settings:
     settings = get_settings()
-    # Uvicorn workers are separate processes, so structlog must be configured
-    # in each worker process as well.
     build_logging_config(settings)
     app_instance.state.settings = settings
 
