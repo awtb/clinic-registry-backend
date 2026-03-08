@@ -5,6 +5,8 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-24.04
+    env:
+      JWT_SECRET_KEY: ci-test-jwt-secret-key
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
