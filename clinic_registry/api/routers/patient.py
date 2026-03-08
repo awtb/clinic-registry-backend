@@ -14,6 +14,7 @@ from clinic_registry.api.schemas.base import PaginationParams
 from clinic_registry.api.schemas.patient import PatientCreateSchema
 from clinic_registry.api.schemas.patient import PatientResponse
 from clinic_registry.api.schemas.patient import PatientUpdateRequest
+from clinic_registry.core.dto.base import PageDTO
 from clinic_registry.core.dto.patient import PatientDTO
 from clinic_registry.core.dto.user import CurrentUserDTO
 from clinic_registry.core.services.patient import PatientService
@@ -38,7 +39,7 @@ async def create_patient(
     data: PatientCreateSchema,
     service: PatientService = Depends(get_patient_service),
     current_user: CurrentUserDTO = Depends(get_current_user),
-):
+) -> PatientDTO:
     dto = patient_create_schema_to_dto(data)
 
     created_patient = await service.create_patient(current_user, dto)
@@ -58,7 +59,7 @@ async def get_patients(
         default=None,
         description="Search by first/last name & passport/phone number",
     ),
-):
+) -> PageDTO[PatientDTO]:
     patients_page = await service.get_patients(
         page=pagination_params.page,
         page_size=pagination_params.page_size,

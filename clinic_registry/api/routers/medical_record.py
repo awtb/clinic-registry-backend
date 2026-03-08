@@ -13,6 +13,7 @@ from clinic_registry.api.schemas.base import PaginationParams
 from clinic_registry.api.schemas.medical_record import RecordCreateSchema
 from clinic_registry.api.schemas.medical_record import RecordResponse
 from clinic_registry.api.schemas.medical_record import RecordUpdateSchema
+from clinic_registry.core.dto.base import PageDTO
 from clinic_registry.core.dto.medical_record import MedicalRecordDTO
 from clinic_registry.core.dto.user import CurrentUserDTO
 from clinic_registry.core.services.medical_record import MedicalRecordService
@@ -34,7 +35,7 @@ async def create_medical_record(
     data: RecordCreateSchema,
     service: MedicalRecordService = Depends(get_record_service),
     current_user: CurrentUserDTO = Depends(get_current_user),
-):
+) -> MedicalRecordDTO:
     dto = record_create_schema_to_dto(data)
     created_medical_record = await service.create_medical_record(
         dto=dto,
@@ -52,7 +53,7 @@ async def create_medical_record(
 async def get_medical_records(
     service: MedicalRecordService = Depends(get_record_service),
     pagination_params: PaginationParams = Depends(get_pagination_params),
-):
+) -> PageDTO[MedicalRecordDTO]:
     medical_records_page = await service.get_medical_records(
         page=pagination_params.page,
         page_size=pagination_params.page_size,
@@ -69,7 +70,7 @@ async def get_medical_records(
 async def get_medical_record(
     medical_record_id: str = Path(title="Medical Record ID"),
     service: MedicalRecordService = Depends(get_record_service),
-):
+) -> MedicalRecordDTO:
     medical_record = await service.get_medical_record(medical_record_id)
     return medical_record
 

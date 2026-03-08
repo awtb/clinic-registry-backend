@@ -15,6 +15,7 @@ from clinic_registry.api.schemas.user import ProfileResponse
 from clinic_registry.api.schemas.user import UserCreateSchema
 from clinic_registry.api.schemas.user import UserResponse
 from clinic_registry.api.schemas.user import UserUpdateRequest
+from clinic_registry.core.dto.base import PageDTO
 from clinic_registry.core.dto.user import CurrentUserDTO
 from clinic_registry.core.dto.user import UserDTO
 from clinic_registry.core.services.service import UserService
@@ -32,7 +33,7 @@ async def profile(
     user_service: UserService = Depends(
         get_user_service,
     ),
-):
+) -> UserDTO:
     user = await user_service.get_user(current_user.id)
     return user
 
@@ -46,7 +47,7 @@ async def get_users(
     ),
     user_service: UserService = Depends(get_user_service),
     current_user: CurrentUserDTO = Depends(get_current_user),
-):
+) -> PageDTO[UserDTO]:
     users_page = await user_service.fetch_all_users(
         page=pagination_params.page,
         page_size=pagination_params.page_size,
@@ -66,7 +67,7 @@ async def create_user(
     data: UserCreateSchema,
     user_service: UserService = Depends(get_user_service),
     current_user: CurrentUserDTO = Depends(get_current_user),
-):
+) -> UserDTO:
     dto = user_create_schema_to_dto(data)
     created_user = await user_service.create_user(
         current_user=current_user,
@@ -85,7 +86,7 @@ async def get_user_by_id(
     user_id: str = Path(title="User ID"),
     user_service: UserService = Depends(get_user_service),
     current_user: CurrentUserDTO = Depends(get_current_user),
-):
+) -> UserDTO:
     return await user_service.get_user(user_id)
 
 
