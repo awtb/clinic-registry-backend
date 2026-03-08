@@ -3,6 +3,7 @@ from fastapi import Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
 from clinic_registry.api.dependencies.auth import get_auth_service
+from clinic_registry.api.schemas.auth import RefreshTokenRequestSchema
 from clinic_registry.api.schemas.auth import TokenSchema
 from clinic_registry.core.dto.auth import LoginRequestDTO
 from clinic_registry.core.dto.auth import TokenPairDTO
@@ -27,3 +28,15 @@ async def login(
     response = await auth_service.login(dto)
 
     return response
+
+
+@router.post(
+    "/refresh-token",
+    summary="Refresh access token",
+    response_model=TokenSchema,
+)
+async def refresh_token(
+    data: RefreshTokenRequestSchema,
+    auth_service: AuthService = Depends(get_auth_service),
+) -> TokenPairDTO:
+    return await auth_service.refresh_token(data.refresh_token)

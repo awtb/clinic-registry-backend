@@ -11,6 +11,10 @@ class TokenSchema(BaseSchema):
     token_type: str = Field(default="bearer")
 
 
+class RefreshTokenRequestSchema(BaseSchema):
+    refresh_token: str
+
+
 class RegistrationRequestSchema(BaseSchema):
     username: str
     first_name: str

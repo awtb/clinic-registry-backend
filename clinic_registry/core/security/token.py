@@ -8,6 +8,7 @@ from clinic_registry.core.dto.auth import TokenPairDTO
 from clinic_registry.core.enums.user import UserRole
 from clinic_registry.core.errors.auth import ExpiredTokenError
 from clinic_registry.core.errors.auth import InvalidAuthorizationScheme
+from clinic_registry.core.errors.auth import InvalidTokenScopeError
 
 
 class TokenService:
@@ -50,7 +51,8 @@ class TokenService:
     def extract_token_payload(
         self,
         token: str,
-    ) -> dict[str, str]:
+        expected_scope: Literal["access", "refresh"] | None = None,
+    ) -> dict[str, Any]:
         try:
             payload = jwt.decode(
                 token,
@@ -61,6 +63,10 @@ class TokenService:
             raise ExpiredTokenError
         except jwt.InvalidTokenError:
             raise InvalidAuthorizationScheme("Token is invalid.")
+
+        token_scope = payload.get("scope")
+        if expected_scope is not None and token_scope != expected_scope:
+            raise InvalidTokenScopeError
 
         return payload
 

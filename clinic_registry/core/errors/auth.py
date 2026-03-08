@@ -20,3 +20,7 @@ class InvalidAuthorizationScheme(InvalidData):
 
 class ExpiredTokenError(NotAllowedError):
     message = "Expired token"
+
+
+class InvalidTokenScopeError(NotAllowedError):
+    message = "Invalid token scope"

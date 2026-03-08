@@ -5,6 +5,8 @@ from clinic_registry.core.enums.log import LogAction
 from clinic_registry.core.enums.log import LogEntity
 from clinic_registry.core.enums.user import UserRole
 from clinic_registry.core.errors.auth import IncorrectEmailOrPasswordError
+from clinic_registry.core.errors.auth import InvalidAuthorizationScheme
+from clinic_registry.core.errors.common import NotAllowedError
 from clinic_registry.core.repos.user import UserRepository
 from clinic_registry.core.security.hasher import PasswordHasher
 from clinic_registry.core.security.token import TokenService
@@ -54,6 +56,7 @@ class AuthService:
     def get_current_user(self, token: str) -> CurrentUserDTO:
         token_payload = self._token_service.extract_token_payload(
             token,
+            expected_scope="access",
         )
 
         user = CurrentUserDTO(
@@ -63,3 +66,23 @@ class AuthService:
         )
 
         return user
+
+    async def refresh_token(self, refresh_token: str) -> TokenPairDTO:
+        token_payload = self._token_service.extract_token_payload(
+            refresh_token,
+            expected_scope="refresh",
+        )
+
+        user_id = token_payload.get("uid")
+        if not isinstance(user_id, str):
+            raise InvalidAuthorizationScheme("Token payload is invalid.")
+
+        user = await self._user_repo.get_user_by_id(user_id)
+        if user is None:
+            raise NotAllowedError("Not allowed")
+
+        return self._token_service.create_token_pair(
+            user_id=user.id,
+            email=user.email,
+            role=user.role,
+        )
