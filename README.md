@@ -1,5 +1,11 @@
 # Clinic Registry Backend
 
+[![Tests](https://img.shields.io/github/actions/workflow/status/awtb/clinic-registry-backend/tests.yml?label=tests&style=for-the-badge)](https://github.com/awtb/clinic-registry-backend/actions/workflows/tests.yml)
+[![Pre-commit](https://img.shields.io/github/actions/workflow/status/awtb/clinic-registry-backend/pre-commit.yml?label=pre-commit&style=for-the-badge)](https://github.com/awtb/clinic-registry-backend/actions/workflows/pre-commit.yml)
+[![Coverage](https://img.shields.io/badge/coverage-pytest%20in%20CI-0A7BBB?style=for-the-badge)](https://github.com/awtb/clinic-registry-backend/actions/workflows/tests.yml)
+[![Python 3.13](https://img.shields.io/badge/python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![License MIT](https://img.shields.io/github/license/awtb/clinic-registry-backend?style=for-the-badge)](./LICENSE)
+
 Backend API for **clinic-registry**.
 
 This project was built as a diploma work project at **Russian-Tajik (Slavonic) University**.
@@ -117,3 +123,7 @@ make test
 Notes:
 - Tests use `pytest`.
 - e2e tests can run against Testcontainers and require Docker.
+
+## License
+
+Distributed under the MIT License. See `LICENSE` for details.
