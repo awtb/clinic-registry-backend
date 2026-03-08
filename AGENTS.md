@@ -69,6 +69,13 @@ For a new domain behavior/API change, update the relevant pieces:
 - DTOs/enums/errors/policies if needed (`core/*`)
 - Tests (prefer e2e coverage in `tests/e2e`)
 
+## Collaboration on Complex Features
+
+- If a requested feature is too complex or underspecified, ask for missing details before implementation.
+- For complex work, provide a short plan (scope, affected modules, and validation steps) and confirm it before major edits.
+- Prefer delivering work as small, reviewable feature slices instead of one large change.
+- Encourage users to split large feature requests into smaller tasks for faster and more reliable human validation.
+
 ## Database and Migrations
 
 - Create migrations with Alembic and commit them with code changes.
