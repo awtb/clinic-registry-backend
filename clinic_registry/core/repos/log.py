@@ -33,7 +33,7 @@ class LogRepository(BaseRepository):
             meta=metadata,
         )
         self._session.add(log_obj)
-        await self._session.commit()
+        await self._session.flush()
 
     async def get_logs(
         self,

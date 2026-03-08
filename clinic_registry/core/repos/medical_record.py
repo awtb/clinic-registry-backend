@@ -31,7 +31,7 @@ class MedicalRecordRepository(BaseRepository):
             chief_complaint=chief_complaint,
         )
         self._session.add(model)
-        await self._session.commit()
+        await self._session.flush()
         await self._session.refresh(model)
 
         stmt = (
@@ -108,4 +108,4 @@ class MedicalRecordRepository(BaseRepository):
 
         stmt = stmt.values(**values)
         await self._session.execute(stmt)
-        await self._session.commit()
+        await self._session.flush()

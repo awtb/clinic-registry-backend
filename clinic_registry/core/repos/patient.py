@@ -64,7 +64,7 @@ class PatientRepository(BaseRepository):
         )
 
         self._session.add(patient_obj)
-        await self._session.commit()
+        await self._session.flush()
         await self._session.refresh(patient_obj)
 
         return patient_to_dto(patient_obj)
@@ -100,7 +100,7 @@ class PatientRepository(BaseRepository):
 
         stmt = stmt.values(**values)
         await self._session.execute(stmt)
-        await self._session.commit()
+        await self._session.flush()
 
     async def get_patient_by_id_or_none(
         self,
@@ -153,4 +153,4 @@ class PatientRepository(BaseRepository):
             .values(last_visit=last_visit)
         )
         await self._session.execute(stmt)
-        await self._session.commit()
+        await self._session.flush()
