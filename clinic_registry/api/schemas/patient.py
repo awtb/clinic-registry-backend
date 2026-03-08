@@ -35,3 +35,5 @@ class PatientUpdateRequest(BaseSchema):
     birth_date: date | None = None
     gender: PatientGender | None = None
     passport_number: str | None = None
+    phone_number: str | None = None
+    notes: str | None = None

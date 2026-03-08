@@ -186,6 +186,38 @@ def test_admin_can_update_patient(
     assert updated_payload["passport_number"] == "UPD-201"
 
 
+def test_admin_can_update_patient_contact_and_notes(
+    client: TestClient,
+    admin_token: str,
+    bearer_headers: Callable[[str], dict[str, str]],
+) -> None:
+    patient = _create_patient(
+        client,
+        admin_token,
+        bearer_headers,
+        first_name="Nora",
+        last_name="Miles",
+        birth_date="1991-08-09",
+        passport_number="UPD-300",
+        gender=PatientGender.FEMALE.value,
+        phone_number="+777111222",
+        notes="initial notes",
+    )
+
+    update_response = client.patch(
+        f"/patients/{patient['id']}",
+        headers=bearer_headers(admin_token),
+        json={
+            "phone_number": "+777333444",
+            "notes": "updated notes",
+        },
+    )
+    assert update_response.status_code == 200
+    updated_payload = update_response.json()
+    assert updated_payload["phone_number"] == "+777333444"
+    assert updated_payload["notes"] == "updated notes"
+
+
 def test_admin_cannot_update_passport_to_existing_one(
     client: TestClient,
     admin_token: str,

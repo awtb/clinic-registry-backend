@@ -30,4 +30,6 @@ def patient_update_request_to_dto(
         birth_date=schema.birth_date,
         gender=schema.gender,
         passport_number=schema.passport_number,
+        phone_number=schema.phone_number,
+        notes=schema.notes,
     )

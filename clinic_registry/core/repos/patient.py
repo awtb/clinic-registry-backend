@@ -98,6 +98,9 @@ class PatientRepository(BaseRepository):
         if gender is not None:
             values["gender"] = gender.value
 
+        if not values:
+            return
+
         stmt = stmt.values(**values)
         await self._session.execute(stmt)
         await self._session.flush()
