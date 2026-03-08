@@ -39,19 +39,25 @@ def build_logging_config(settings: Any) -> dict[str, Any]:
         service=service_name,
         logging_mode=logging_mode,
     )
-    shared_processors: list[StructlogProcessor] = [
+    common_processors: list[StructlogProcessor] = [
         structlog.stdlib.add_logger_name,
         structlog.stdlib.add_log_level,
         structlog.processors.TimeStamper(fmt="iso", utc=True, key="timestamp"),
+    ]  # type: ignore[list-item]
+    structured_only_processors: list[StructlogProcessor] = [
         static_fields_processor,
         _add_message_field,
-    ]  # type: ignore[list-item]
+    ]
+    if logging_mode == "structured":
+        processors = [*common_processors, *structured_only_processors]
+    else:
+        processors = common_processors
 
     structlog.configure(
         processors=[
             structlog.contextvars.merge_contextvars,
             structlog.stdlib.filter_by_level,
-            *shared_processors,  # type: ignore[list-item]
+            *processors,  # type: ignore[list-item]
             structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
         ],
         logger_factory=structlog.stdlib.LoggerFactory(),
@@ -65,16 +71,23 @@ def build_logging_config(settings: Any) -> dict[str, Any]:
         "formatters": {
             "dev": {
                 "()": "structlog.stdlib.ProcessorFormatter",
-                "foreign_pre_chain": shared_processors,
+                "foreign_pre_chain": common_processors,
                 "processors": [
                     structlog.stdlib.ProcessorFormatter.remove_processors_meta,
                     structlog.processors.format_exc_info,
-                    structlog.dev.ConsoleRenderer(colors=False),
+                    structlog.dev.ConsoleRenderer(
+                        colors=False,
+                        pad_level=False,
+                        pad_event_to=0,
+                    ),
                 ],
             },
             "json": {
                 "()": "structlog.stdlib.ProcessorFormatter",
-                "foreign_pre_chain": shared_processors,
+                "foreign_pre_chain": [
+                    *common_processors,
+                    *structured_only_processors,
+                ],
                 "processors": [
                     structlog.stdlib.ProcessorFormatter.remove_processors_meta,
                     structlog.processors.format_exc_info,
