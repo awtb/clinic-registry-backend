@@ -63,9 +63,15 @@ CORS_ALLOW_METHODS=["*"]
 CORS_ALLOW_CREDENTIALS=true
 ```
 
-## Logging
-The project supports both plain and structured logs.
-Set `LOGGING_MODE=structured` to emit JSON logs, which can be integrated with VictoriaLogs.
+## Observability
+The service includes basic observability out of the box for local development and deployment environments:
+
+- plain or structured application logs, depending on `LOGGING_MODE`
+- request IDs to trace a single request across log records
+- Prometheus-compatible HTTP metrics exposed at `/metrics`
+- integration-friendly output for VictoriaLogs and VictoriaMetrics
+
+This setup covers the core signals needed to inspect request flow, monitor API behavior, and plug the service into a lightweight observability stack.
 
 ## Installation (Docker First)
 Recommended way to run the backend:
