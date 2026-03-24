@@ -7,7 +7,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.base import RequestResponseEndpoint
 from starlette.responses import Response
 
-
 _REQUEST_ID_HEADER = "X-Request-ID"
 _REQUEST_LOGGER = structlog.get_logger(__name__)
 
