@@ -10,10 +10,12 @@ from clinic_registry.api.routers.auth import router as auth_router
 from clinic_registry.api.routers.dashboard import router as dashboard_router
 from clinic_registry.api.routers.log import router as logs_router
 from clinic_registry.api.routers.medical_record import router as records_router
+from clinic_registry.api.routers.metrics import router as metrics_router
 from clinic_registry.api.routers.patient import router as patients_router
 from clinic_registry.api.routers.user import router as users_router
 from clinic_registry.logging import build_logging_config
 from clinic_registry.logging.middleware import RequestLoggingMiddleware
+from clinic_registry.metrics import PrometheusMetricsMiddleware
 from clinic_registry.settings import get_settings
 from clinic_registry.settings import Settings
 
@@ -61,6 +63,9 @@ def setup_middlewares(app_instance: FastAPI) -> None:
         RequestLoggingMiddleware,
     )
     app_instance.add_middleware(
+        PrometheusMetricsMiddleware,
+    )
+    app_instance.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_allow_origins,
         allow_methods=settings.cors_allow_methods,
@@ -70,6 +75,7 @@ def setup_middlewares(app_instance: FastAPI) -> None:
 
 
 def setup_routers(app_instance: FastAPI) -> None:
+    app_instance.include_router(metrics_router)
     app_instance.include_router(auth_router)
     app_instance.include_router(users_router)
     app_instance.include_router(patients_router)
