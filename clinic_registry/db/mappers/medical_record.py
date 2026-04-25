@@ -1,10 +1,13 @@
 from clinic_registry.core.dto.medical_record import MedicalRecordDTO
 from clinic_registry.db.mappers.patient import patient_to_dto
+from clinic_registry.db.mappers.procedure import procedure_to_dto
 from clinic_registry.db.mappers.user import user_to_dto
 from clinic_registry.db.models.medical_record import MedicalRecord
 
 
 def medical_record_to_dto(medical_record: MedicalRecord) -> MedicalRecordDTO:
+    procedures = medical_record.procedures
+
     return MedicalRecordDTO(
         id=medical_record.id,
         patient_id=medical_record.patient_id,
@@ -15,6 +18,7 @@ def medical_record_to_dto(medical_record: MedicalRecord) -> MedicalRecordDTO:
         updated_at=medical_record.updated_at,
         chief_complaint=medical_record.chief_complaint,
         creator_id=medical_record.creator_id,
-        procedures=medical_record.procedures,
+        procedure_ids=[procedure.id for procedure in procedures],
+        procedures=[procedure_to_dto(procedure) for procedure in procedures],
         creator=user_to_dto(medical_record.creator),
     )
