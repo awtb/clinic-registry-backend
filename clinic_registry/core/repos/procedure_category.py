@@ -38,7 +38,8 @@ class ProcedureCategoryRepository(BaseRepository):
         self,
         category_id: str,
     ) -> ProcedureCategoryDTO | None:
-        stmt = select(ProcedureCategory).where(ProcedureCategory.id == category_id)
+        category = ProcedureCategory
+        stmt = select(category).where(category.id == category_id)
         res = await self._session.execute(stmt)
         first_row = res.scalars().first()
 
@@ -72,7 +73,8 @@ class ProcedureCategoryRepository(BaseRepository):
         code: str,
         exclude_category_id: str | None = None,
     ) -> bool:
-        stmt = select(exists(ProcedureCategory).where(ProcedureCategory.code == code))
+        category = ProcedureCategory
+        stmt = select(exists(category).where(category.code == code))
 
         if exclude_category_id is not None:
             stmt = select(
@@ -92,7 +94,8 @@ class ProcedureCategoryRepository(BaseRepository):
         search_query: str | None = None,
         is_active: bool | None = None,
     ) -> PageDTO[ProcedureCategoryDTO]:
-        stmt = select(ProcedureCategory).order_by(ProcedureCategory.created_at.desc())
+        category = ProcedureCategory
+        stmt = select(category).order_by(category.created_at.desc())
         normalized_search_query = search_query.strip() if search_query else ""
 
         if normalized_search_query:
@@ -122,7 +125,8 @@ class ProcedureCategoryRepository(BaseRepository):
         description: str | None = None,
         is_active: bool | None = None,
     ) -> None:
-        stmt = update(ProcedureCategory).where(ProcedureCategory.id == category.id)
+        model = ProcedureCategory
+        stmt = update(model).where(model.id == category.id)
 
         values: dict[str, Any] = {"updated_at": datetime.now()}
         if code is not None:
