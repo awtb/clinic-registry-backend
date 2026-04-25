@@ -3,6 +3,7 @@ from datetime import datetime
 
 from clinic_registry.core.dto.base import BaseDTO
 from clinic_registry.core.dto.patient import PatientDTO
+from clinic_registry.core.dto.procedure import ProcedureDTO
 from clinic_registry.core.dto.user import UserDTO
 
 
@@ -11,7 +12,7 @@ class MedicalRecordCreateDTO(BaseDTO):
     patient_id: str
     diagnosis: str
     treatment: str
-    procedures: str
+    procedure_ids: list[str]
     chief_complaint: str | None
 
 
@@ -22,7 +23,8 @@ class MedicalRecordDTO(BaseDTO):
     patient: PatientDTO
     diagnosis: str
     treatment: str
-    procedures: str
+    procedure_ids: list[str]
+    procedures: list[ProcedureDTO]
     chief_complaint: str | None
     creator_id: str
     creator: UserDTO
@@ -35,5 +37,5 @@ class MedicalRecordUpdateDTO(BaseDTO):
     medical_record_for_update: MedicalRecordDTO
     diagnosis: str | None = None
     treatment: str | None = None
-    procedures: str | None = None
+    procedure_ids: list[str] | None = None
     chief_complaint: str | None = None
