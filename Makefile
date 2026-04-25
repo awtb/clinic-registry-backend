@@ -1,4 +1,4 @@
-.PHONY: install migrate dev prod pre-commit test
+.PHONY: install migrate dev prod pre-commit test seed
 
 PYRUN = PYTHONPATH="$(CURDIR)/src:$$PYTHONPATH" uv run python -m
 APP = $(PYRUN) clinic_registry
@@ -22,3 +22,6 @@ pre-commit:
 
 test:
 	uv run pytest
+
+seed:
+	PYTHONPATH=$(CURDIR) uv run python scripts/seed_dental_data.py
