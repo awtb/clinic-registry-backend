@@ -43,7 +43,7 @@ def _create_medical_record(
     patient_id: str,
     diagnosis: str,
     treatment: str,
-    procedures: str,
+    procedure_ids: list[str],
     chief_complaint: str | None = None,
 ) -> dict:
     response = client.post(
@@ -53,8 +53,52 @@ def _create_medical_record(
             "patient_id": patient_id,
             "diagnosis": diagnosis,
             "treatment": treatment,
-            "procedures": procedures,
+            "procedure_ids": procedure_ids,
             "chief_complaint": chief_complaint,
+        },
+    )
+    assert response.status_code == 201
+    return response.json()
+
+
+def _create_procedure(
+    client: TestClient,
+    token: str,
+    bearer_headers: Callable[[str], dict[str, str]],
+    *,
+    code: str,
+    name: str,
+    category_id: str,
+    default_price: str = "0.00",
+) -> dict:
+    response = client.post(
+        "/procedures/",
+        headers=bearer_headers(token),
+        json={
+            "code": code,
+            "name": name,
+            "category_id": category_id,
+            "default_price": default_price,
+        },
+    )
+    assert response.status_code == 201
+    return response.json()
+
+
+def _create_category(
+    client: TestClient,
+    token: str,
+    bearer_headers: Callable[[str], dict[str, str]],
+    *,
+    code: str,
+    name: str,
+) -> dict:
+    response = client.post(
+        "/procedure-categories/",
+        headers=bearer_headers(token),
+        json={
+            "code": code,
+            "name": name,
         },
     )
     assert response.status_code == 201
@@ -71,7 +115,7 @@ def test_medical_records_require_authentication(client: TestClient) -> None:
             "patient_id": "01TESTPATIENT",
             "diagnosis": "Flu",
             "treatment": "Rest",
-            "procedures": "Checkup",
+            "procedure_ids": ["01TESTPROCEDURE"],
             "chief_complaint": "Fever",
         },
     )
@@ -94,6 +138,36 @@ def test_create_medical_record_updates_patient_last_visit(
         passport_number="REC-001",
         gender=PatientGender.MALE.value,
     )
+    diagnostics = _create_category(
+        client,
+        user_token,
+        bearer_headers,
+        code="DIAG",
+        name="Diagnostics",
+    )
+    treatment_category = _create_category(
+        client,
+        user_token,
+        bearer_headers,
+        code="TREAT",
+        name="Treatment",
+    )
+    procedure = _create_procedure(
+        client,
+        user_token,
+        bearer_headers,
+        code="XRAY",
+        name="X-Ray",
+        category_id=diagnostics["id"],
+    )
+    second_procedure = _create_procedure(
+        client,
+        user_token,
+        bearer_headers,
+        code="FILLING",
+        name="Filling",
+        category_id=treatment_category["id"],
+    )
 
     record = _create_medical_record(
         client,
@@ -102,7 +176,7 @@ def test_create_medical_record_updates_patient_last_visit(
         patient_id=patient["id"],
         diagnosis="Caries",
         treatment="Filling",
-        procedures="X-Ray",
+        procedure_ids=[procedure["id"], second_procedure["id"]],
         chief_complaint="Tooth pain",
     )
 
@@ -110,6 +184,14 @@ def test_create_medical_record_updates_patient_last_visit(
     assert record["diagnosis"] == "Caries"
     assert record["creator_id"] == seeded_users["user"]["id"]
     assert record["patient"]["id"] == patient["id"]
+    assert record["procedure_ids"] == [
+        procedure["id"],
+        second_procedure["id"],
+    ]
+    assert [procedure["name"] for procedure in record["procedures"]] == [
+        "X-Ray",
+        "Filling",
+    ]
 
     updated_patient_response = client.get(
         f"/patients/{patient['id']}",
@@ -132,12 +214,44 @@ def test_create_medical_record_for_missing_patient_returns_404(
             "patient_id": "01NONEXISTENTPATIENT",
             "diagnosis": "Caries",
             "treatment": "Filling",
-            "procedures": "X-Ray",
+            "procedure_ids": ["01TESTPROCEDURE"],
             "chief_complaint": "Pain",
         },
     )
     assert response.status_code == 404
     assert response.json()["detail"]["message"] == "Patient not found"
+
+
+def test_create_medical_record_for_missing_procedure_returns_404(
+    client: TestClient,
+    admin_token: str,
+    bearer_headers: Callable[[str], dict[str, str]],
+) -> None:
+    patient = _create_patient(
+        client,
+        admin_token,
+        bearer_headers,
+        first_name="Missing",
+        last_name="Procedure",
+        birth_date="1985-07-21",
+        passport_number="REC-MISSING-PROC",
+        gender=PatientGender.FEMALE.value,
+    )
+
+    response = client.post(
+        "/medical-records/",
+        headers=bearer_headers(admin_token),
+        json={
+            "patient_id": patient["id"],
+            "diagnosis": "Caries",
+            "treatment": "Filling",
+            "procedure_ids": ["01NONEXISTENTPROC"],
+            "chief_complaint": "Pain",
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"]["message"] == "Procedure not found"
 
 
 def test_get_medical_record_by_id(
@@ -155,6 +269,21 @@ def test_get_medical_record_by_id(
         passport_number="REC-002",
         gender=PatientGender.FEMALE.value,
     )
+    diagnostics = _create_category(
+        client,
+        admin_token,
+        bearer_headers,
+        code="DIAG",
+        name="Diagnostics",
+    )
+    procedure = _create_procedure(
+        client,
+        admin_token,
+        bearer_headers,
+        code="ORAL-EXAM",
+        name="Oral exam",
+        category_id=diagnostics["id"],
+    )
     created_record = _create_medical_record(
         client,
         admin_token,
@@ -162,7 +291,7 @@ def test_get_medical_record_by_id(
         patient_id=patient["id"],
         diagnosis="Gingivitis",
         treatment="Cleaning",
-        procedures="Oral exam",
+        procedure_ids=[procedure["id"]],
     )
 
     response = client.get(
@@ -174,6 +303,7 @@ def test_get_medical_record_by_id(
     assert payload["id"] == created_record["id"]
     assert payload["patient"]["id"] == patient["id"]
     assert payload["diagnosis"] == "Gingivitis"
+    assert payload["procedures"][0]["id"] == procedure["id"]
 
 
 def test_get_medical_records_list(
@@ -191,6 +321,29 @@ def test_get_medical_records_list(
         passport_number="REC-003",
         gender=PatientGender.MALE.value,
     )
+    category = _create_category(
+        client,
+        admin_token,
+        bearer_headers,
+        code="CAT",
+        name="Category",
+    )
+    procedure_c = _create_procedure(
+        client,
+        admin_token,
+        bearer_headers,
+        code="PROC-C",
+        name="C",
+        category_id=category["id"],
+    )
+    procedure_f = _create_procedure(
+        client,
+        admin_token,
+        bearer_headers,
+        code="PROC-F",
+        name="F",
+        category_id=category["id"],
+    )
 
     first = _create_medical_record(
         client,
@@ -199,7 +352,7 @@ def test_get_medical_records_list(
         patient_id=patient["id"],
         diagnosis="A",
         treatment="B",
-        procedures="C",
+        procedure_ids=[procedure_c["id"]],
     )
     second = _create_medical_record(
         client,
@@ -208,7 +361,7 @@ def test_get_medical_records_list(
         patient_id=patient["id"],
         diagnosis="D",
         treatment="E",
-        procedures="F",
+        procedure_ids=[procedure_f["id"]],
     )
 
     response = client.get(
@@ -238,6 +391,29 @@ def test_update_medical_record(
         passport_number="REC-004",
         gender=PatientGender.FEMALE.value,
     )
+    category = _create_category(
+        client,
+        admin_token,
+        bearer_headers,
+        code="CAT",
+        name="Category",
+    )
+    old_procedure = _create_procedure(
+        client,
+        admin_token,
+        bearer_headers,
+        code="OLD-PROC",
+        name="Old procedure",
+        category_id=category["id"],
+    )
+    new_procedure = _create_procedure(
+        client,
+        admin_token,
+        bearer_headers,
+        code="NEW-PROC",
+        name="New procedure",
+        category_id=category["id"],
+    )
     record = _create_medical_record(
         client,
         admin_token,
@@ -245,7 +421,7 @@ def test_update_medical_record(
         patient_id=patient["id"],
         diagnosis="Old diagnosis",
         treatment="Old treatment",
-        procedures="Old procedures",
+        procedure_ids=[old_procedure["id"]],
         chief_complaint="Old complaint",
     )
 
@@ -255,7 +431,7 @@ def test_update_medical_record(
         json={
             "diagnosis": "New diagnosis",
             "treatment": "New treatment",
-            "procedures": "New procedures",
+            "procedure_ids": [new_procedure["id"]],
             "chief_complaint": "New complaint",
         },
     )
@@ -264,7 +440,8 @@ def test_update_medical_record(
     assert updated_record["id"] == record["id"]
     assert updated_record["diagnosis"] == "New diagnosis"
     assert updated_record["treatment"] == "New treatment"
-    assert updated_record["procedures"] == "New procedures"
+    assert updated_record["procedure_ids"] == [new_procedure["id"]]
+    assert updated_record["procedures"][0]["name"] == "New procedure"
     assert updated_record["chief_complaint"] == "New complaint"
 
 
