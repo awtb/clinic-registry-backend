@@ -12,6 +12,10 @@ from clinic_registry.api.routers.log import router as logs_router
 from clinic_registry.api.routers.medical_record import router as records_router
 from clinic_registry.api.routers.metrics import router as metrics_router
 from clinic_registry.api.routers.patient import router as patients_router
+from clinic_registry.api.routers.procedure import router as procedures_router
+from clinic_registry.api.routers.procedure_category import (
+    router as procedure_categories_router,
+)
 from clinic_registry.api.routers.user import router as users_router
 from clinic_registry.logging import build_logging_config
 from clinic_registry.logging.middleware import RequestLoggingMiddleware
@@ -79,6 +83,8 @@ def setup_routers(app_instance: FastAPI) -> None:
     app_instance.include_router(auth_router)
     app_instance.include_router(users_router)
     app_instance.include_router(patients_router)
+    app_instance.include_router(procedure_categories_router)
+    app_instance.include_router(procedures_router)
     app_instance.include_router(records_router)
     app_instance.include_router(logs_router)
     app_instance.include_router(dashboard_router)
