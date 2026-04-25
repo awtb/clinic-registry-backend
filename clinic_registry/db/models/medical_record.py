@@ -9,7 +9,11 @@ from sqlalchemy.orm import relationship
 from ulid import ULID
 
 from clinic_registry.db.models.base import BaseModel
+from clinic_registry.db.models.medical_record_procedure import (
+    medical_record_procedures,
+)
 from clinic_registry.db.models.patient import Patient
+from clinic_registry.db.models.procedure import Procedure
 from clinic_registry.db.models.user import User
 
 
@@ -46,4 +50,7 @@ class MedicalRecord(BaseModel):
         "Patient",
         foreign_keys=[patient_id],
     )
-    procedures: Mapped[str] = mapped_column(String(), nullable=False)
+    procedures: Mapped[list[Procedure]] = relationship(
+        "Procedure",
+        secondary=medical_record_procedures,
+    )
