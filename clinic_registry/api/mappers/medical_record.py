@@ -12,7 +12,7 @@ def record_create_schema_to_dto(
         patient_id=schema.patient_id,
         diagnosis=schema.diagnosis,
         treatment=schema.treatment,
-        procedures=schema.procedures,
+        procedure_ids=schema.procedure_ids,
         chief_complaint=schema.chief_complaint,
     )
 
@@ -25,6 +25,6 @@ def record_update_schema_to_dto(
         medical_record_for_update=medical_record_for_update,
         diagnosis=schema.diagnosis,
         treatment=schema.treatment,
-        procedures=schema.procedures,
+        procedure_ids=schema.procedure_ids,
         chief_complaint=schema.chief_complaint,
     )
