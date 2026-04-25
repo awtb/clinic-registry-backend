@@ -15,7 +15,10 @@ from clinic_registry.core.security.hasher import PasswordHasher
 from clinic_registry.db.models.user import User
 from clinic_registry.settings import Settings
 
-TRUNCATE_SQL = "TRUNCATE TABLE logs, medical_records, patients, users CASCADE"
+TRUNCATE_SQL = (
+    "TRUNCATE TABLE logs, medical_record_procedures, medical_records, "
+    "procedures, procedure_categories, patients, users CASCADE"
+)
 
 
 @pytest.fixture
