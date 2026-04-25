@@ -5,9 +5,11 @@ from clinic_registry.core.dto.medical_record import MedicalRecordUpdateDTO
 from clinic_registry.core.dto.user import CurrentUserDTO
 from clinic_registry.core.enums.log import LogAction
 from clinic_registry.core.enums.log import LogEntity
+from clinic_registry.core.errors.common import InvalidData
 from clinic_registry.core.errors.common import NotFoundError
 from clinic_registry.core.repos.medical_record import MedicalRecordRepository
 from clinic_registry.core.repos.patient import PatientRepository
+from clinic_registry.core.repos.procedure import ProcedureRepository
 from clinic_registry.core.services.log import LogService
 
 
@@ -16,10 +18,12 @@ class MedicalRecordService:
         self,
         medical_record_repo: MedicalRecordRepository,
         patient_repo: PatientRepository,
+        procedure_repo: ProcedureRepository,
         log_service: LogService,
     ) -> None:
         self._records_repo = medical_record_repo
         self._patient_repo = patient_repo
+        self._procedure_repo = procedure_repo
         self._log_service = log_service
 
     async def create_medical_record(
@@ -32,12 +36,13 @@ class MedicalRecordService:
         )
         if patient is None:
             raise NotFoundError("Patient not found")
+        await self._validate_procedures_exist(dto.procedure_ids)
 
         created_record = await self._records_repo.create_medical_record(
             patient_id=dto.patient_id,
             diagnosis=dto.diagnosis,
             treatment=dto.treatment,
-            procedures=dto.procedures,
+            procedure_ids=dto.procedure_ids,
             creator_id=current_user.id,
             chief_complaint=dto.chief_complaint,
         )
@@ -83,11 +88,14 @@ class MedicalRecordService:
         current_user: CurrentUserDTO,
         dto: MedicalRecordUpdateDTO,
     ) -> MedicalRecordDTO:
+        if dto.procedure_ids is not None:
+            await self._validate_procedures_exist(dto.procedure_ids)
+
         await self._records_repo.update_medical_record(
             medical_record=dto.medical_record_for_update,
             diagnosis=dto.diagnosis,
             treatment=dto.treatment,
-            procedures=dto.procedures,
+            procedure_ids=dto.procedure_ids,
             chief_complaint=dto.chief_complaint,
         )
 
@@ -104,3 +112,20 @@ class MedicalRecordService:
         )
 
         return updated_medical_record
+
+    async def _validate_procedures_exist(
+        self,
+        procedure_ids: list[str],
+    ) -> None:
+        if len(procedure_ids) != len(set(procedure_ids)):
+            raise InvalidData("Procedure IDs must be unique")
+
+        procedure_repo = self._procedure_repo
+        existing_ids = await procedure_repo.get_existing_procedure_ids(
+            procedure_ids,
+            active_only=True,
+        )
+        missing_procedure_ids = set(procedure_ids) - existing_ids
+
+        if missing_procedure_ids:
+            raise NotFoundError("Procedure not found")
