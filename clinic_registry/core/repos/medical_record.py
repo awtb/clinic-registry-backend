@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import select
@@ -10,6 +11,7 @@ from clinic_registry.core.dto.medical_record import MedicalRecordDTO
 from clinic_registry.core.repos.base import BaseRepository
 from clinic_registry.db.mappers import medical_record_to_dto
 from clinic_registry.db.models import MedicalRecord
+from clinic_registry.db.models import MedicalRecordProcedure
 from clinic_registry.db.models import Procedure
 
 
@@ -20,15 +22,17 @@ class MedicalRecordRepository(BaseRepository):
         diagnosis: str,
         treatment: str,
         procedure_ids: list[str],
+        unit_prices: dict[str, Decimal],
+        total_price: Decimal,
         creator_id: str,
         chief_complaint: str | None = None,
     ) -> MedicalRecordDTO:
-        procedures = await self._get_procedure_models(procedure_ids)
         model = MedicalRecord(
             patient_id=patient_id,
             diagnosis=diagnosis,
             treatment=treatment,
-            procedures=procedures,
+            line_items=self._build_line_items(procedure_ids, unit_prices),
+            total_price=total_price,
             creator_id=creator_id,
             chief_complaint=chief_complaint,
         )
@@ -36,16 +40,8 @@ class MedicalRecordRepository(BaseRepository):
         await self._session.flush()
         await self._session.refresh(model)
 
-        stmt = (
-            select(MedicalRecord)
-            .where(MedicalRecord.id == model.id)
-            .options(selectinload(MedicalRecord.patient))
-            .options(selectinload(MedicalRecord.creator))
-            .options(
-                selectinload(MedicalRecord.procedures).selectinload(
-                    Procedure.category,
-                )
-            )
+        stmt = self._select_record_with_relations().where(
+            MedicalRecord.id == model.id,
         )
         res = await self._session.execute(stmt)
         medical_record = res.scalars().first()
@@ -60,16 +56,8 @@ class MedicalRecordRepository(BaseRepository):
         self,
         medical_record_id: str,
     ) -> MedicalRecordDTO | None:
-        stmt = (
-            select(MedicalRecord)
-            .where(MedicalRecord.id == medical_record_id)
-            .options(selectinload(MedicalRecord.patient))
-            .options(selectinload(MedicalRecord.creator))
-            .options(
-                selectinload(MedicalRecord.procedures).selectinload(
-                    Procedure.category,
-                )
-            )
+        stmt = self._select_record_with_relations().where(
+            MedicalRecord.id == medical_record_id,
         )
         res = await self._session.execute(stmt)
         first_row = res.scalars().first()
@@ -81,16 +69,8 @@ class MedicalRecordRepository(BaseRepository):
         page: int,
         page_size: int,
     ) -> PageDTO[MedicalRecordDTO]:
-        stmt = (
-            select(MedicalRecord)
-            .options(selectinload(MedicalRecord.patient))
-            .options(selectinload(MedicalRecord.creator))
-            .options(
-                selectinload(MedicalRecord.procedures).selectinload(
-                    Procedure.category,
-                )
-            )
-            .order_by(MedicalRecord.created_at.desc())
+        stmt = self._select_record_with_relations().order_by(
+            MedicalRecord.created_at.desc(),
         )
         needed_page = await self._fetch(
             query=stmt,
@@ -107,6 +87,8 @@ class MedicalRecordRepository(BaseRepository):
         diagnosis: str | None = None,
         treatment: str | None = None,
         procedure_ids: list[str] | None = None,
+        unit_prices: dict[str, Decimal] | None = None,
+        total_price: Decimal | None = None,
         chief_complaint: str | None = None,
     ) -> None:
         stmt = update(MedicalRecord).where(
@@ -120,6 +102,8 @@ class MedicalRecordRepository(BaseRepository):
             values["treatment"] = treatment
         if chief_complaint is not None:
             values["chief_complaint"] = chief_complaint
+        if total_price is not None:
+            values["total_price"] = total_price
 
         stmt = stmt.values(**values)
         await self._session.execute(stmt)
@@ -127,11 +111,37 @@ class MedicalRecordRepository(BaseRepository):
         if procedure_ids is not None:
             record = await self._get_medical_record_model(medical_record.id)
             if record is not None:
-                record.procedures = await self._get_procedure_models(
+                record.line_items = self._build_line_items(
                     procedure_ids,
+                    unit_prices or {},
                 )
 
         await self._session.flush()
+
+    def _select_record_with_relations(self) -> Any:
+        return (
+            select(MedicalRecord)
+            .options(selectinload(MedicalRecord.patient))
+            .options(selectinload(MedicalRecord.creator))
+            .options(
+                selectinload(MedicalRecord.line_items)
+                .selectinload(MedicalRecordProcedure.procedure)
+                .selectinload(Procedure.category)
+            )
+        )
+
+    @staticmethod
+    def _build_line_items(
+        procedure_ids: list[str],
+        unit_prices: dict[str, Decimal],
+    ) -> list[MedicalRecordProcedure]:
+        return [
+            MedicalRecordProcedure(
+                procedure_id=procedure_id,
+                unit_price=unit_prices.get(procedure_id, Decimal("0.00")),
+            )
+            for procedure_id in procedure_ids
+        ]
 
     async def _get_medical_record_model(
         self,
@@ -140,31 +150,7 @@ class MedicalRecordRepository(BaseRepository):
         stmt = (
             select(MedicalRecord)
             .where(MedicalRecord.id == medical_record_id)
-            .options(
-                selectinload(MedicalRecord.procedures).selectinload(
-                    Procedure.category,
-                )
-            )
+            .options(selectinload(MedicalRecord.line_items))
         )
         res = await self._session.execute(stmt)
         return res.scalars().first()
-
-    async def _get_procedure_models(
-        self,
-        procedure_ids: list[str],
-    ) -> list[Procedure]:
-        stmt = (
-            select(Procedure)
-            .where(Procedure.id.in_(procedure_ids))
-            .options(selectinload(Procedure.category))
-        )
-        res = await self._session.execute(stmt)
-        procedures_by_id = {
-            procedure.id: procedure for procedure in res.scalars().all()
-        }
-
-        return [
-            procedures_by_id[procedure_id]
-            for procedure_id in procedure_ids
-            if procedure_id in procedures_by_id
-        ]

@@ -159,6 +159,7 @@ def test_create_medical_record_updates_patient_last_visit(
         code="XRAY",
         name="X-Ray",
         category_id=diagnostics["id"],
+        default_price="150.00",
     )
     second_procedure = _create_procedure(
         client,
@@ -167,6 +168,7 @@ def test_create_medical_record_updates_patient_last_visit(
         code="FILLING",
         name="Filling",
         category_id=treatment_category["id"],
+        default_price="75.50",
     )
 
     record = _create_medical_record(
@@ -192,6 +194,8 @@ def test_create_medical_record_updates_patient_last_visit(
         "X-Ray",
         "Filling",
     ]
+    # total_price is the sum of the procedures' prices at creation time.
+    assert record["total_price"] == "225.50"
 
     updated_patient_response = client.get(
         f"/patients/{patient['id']}",
@@ -405,6 +409,7 @@ def test_update_medical_record(
         code="OLD-PROC",
         name="Old procedure",
         category_id=category["id"],
+        default_price="50.00",
     )
     new_procedure = _create_procedure(
         client,
@@ -413,6 +418,7 @@ def test_update_medical_record(
         code="NEW-PROC",
         name="New procedure",
         category_id=category["id"],
+        default_price="80.00",
     )
     record = _create_medical_record(
         client,
@@ -424,6 +430,7 @@ def test_update_medical_record(
         procedure_ids=[old_procedure["id"]],
         chief_complaint="Old complaint",
     )
+    assert record["total_price"] == "50.00"
 
     update_response = client.patch(
         f"/medical-records/{record['id']}",
@@ -443,6 +450,69 @@ def test_update_medical_record(
     assert updated_record["procedure_ids"] == [new_procedure["id"]]
     assert updated_record["procedures"][0]["name"] == "New procedure"
     assert updated_record["chief_complaint"] == "New complaint"
+    # Changing the procedures re-snapshots the total from their prices.
+    assert updated_record["total_price"] == "80.00"
+
+
+def test_total_price_is_snapshotted_at_creation(
+    client: TestClient,
+    admin_token: str,
+    bearer_headers: Callable[[str], dict[str, str]],
+) -> None:
+    patient = _create_patient(
+        client,
+        admin_token,
+        bearer_headers,
+        first_name="Snap",
+        last_name="Shot",
+        birth_date="1980-05-05",
+        passport_number="REC-SNAP",
+        gender=PatientGender.MALE.value,
+    )
+    category = _create_category(
+        client,
+        admin_token,
+        bearer_headers,
+        code="CAT",
+        name="Category",
+    )
+    procedure = _create_procedure(
+        client,
+        admin_token,
+        bearer_headers,
+        code="SNAP-PROC",
+        name="Snapshot procedure",
+        category_id=category["id"],
+        default_price="100.00",
+    )
+    record = _create_medical_record(
+        client,
+        admin_token,
+        bearer_headers,
+        patient_id=patient["id"],
+        diagnosis="D",
+        treatment="T",
+        procedure_ids=[procedure["id"]],
+    )
+    assert record["total_price"] == "100.00"
+
+    # Raising the catalog price must not retroactively change past records.
+    price_update = client.patch(
+        f"/procedures/{procedure['id']}",
+        headers=bearer_headers(admin_token),
+        json={"default_price": "999.99"},
+    )
+    assert price_update.status_code == 200
+
+    response = client.get(
+        f"/medical-records/{record['id']}",
+        headers=bearer_headers(admin_token),
+    )
+    assert response.status_code == 200
+    fetched = response.json()
+    assert fetched["total_price"] == "100.00"
+    # The catalog price moved, but the record's frozen total did not.
+    assert fetched["procedures"][0]["default_price"] == "999.99"
 
 
 def test_update_missing_medical_record_returns_404(

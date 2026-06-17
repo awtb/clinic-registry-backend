@@ -1,7 +1,10 @@
+from decimal import Decimal
+
 from clinic_registry.core.dto.base import PageDTO
 from clinic_registry.core.dto.medical_record import MedicalRecordCreateDTO
 from clinic_registry.core.dto.medical_record import MedicalRecordDTO
 from clinic_registry.core.dto.medical_record import MedicalRecordUpdateDTO
+from clinic_registry.core.dto.procedure import ProcedureDTO
 from clinic_registry.core.dto.user import CurrentUserDTO
 from clinic_registry.core.enums.log import LogAction
 from clinic_registry.core.enums.log import LogEntity
@@ -36,13 +39,19 @@ class MedicalRecordService:
         )
         if patient is None:
             raise NotFoundError("Patient not found")
-        await self._validate_procedures_exist(dto.procedure_ids)
+        procedures = await self._resolve_priced_procedures(dto.procedure_ids)
+        unit_prices, total_price = self._calculate_pricing(
+            dto.procedure_ids,
+            procedures,
+        )
 
         created_record = await self._records_repo.create_medical_record(
             patient_id=dto.patient_id,
             diagnosis=dto.diagnosis,
             treatment=dto.treatment,
             procedure_ids=dto.procedure_ids,
+            unit_prices=unit_prices,
+            total_price=total_price,
             creator_id=current_user.id,
             chief_complaint=dto.chief_complaint,
         )
@@ -88,14 +97,24 @@ class MedicalRecordService:
         current_user: CurrentUserDTO,
         dto: MedicalRecordUpdateDTO,
     ) -> MedicalRecordDTO:
+        unit_prices: dict[str, Decimal] | None = None
+        total_price: Decimal | None = None
         if dto.procedure_ids is not None:
-            await self._validate_procedures_exist(dto.procedure_ids)
+            procedures = await self._resolve_priced_procedures(
+                dto.procedure_ids,
+            )
+            unit_prices, total_price = self._calculate_pricing(
+                dto.procedure_ids,
+                procedures,
+            )
 
         await self._records_repo.update_medical_record(
             medical_record=dto.medical_record_for_update,
             diagnosis=dto.diagnosis,
             treatment=dto.treatment,
             procedure_ids=dto.procedure_ids,
+            unit_prices=unit_prices,
+            total_price=total_price,
             chief_complaint=dto.chief_complaint,
         )
 
@@ -113,19 +132,36 @@ class MedicalRecordService:
 
         return updated_medical_record
 
-    async def _validate_procedures_exist(
+    async def _resolve_priced_procedures(
         self,
         procedure_ids: list[str],
-    ) -> None:
+    ) -> list[ProcedureDTO]:
         if len(procedure_ids) != len(set(procedure_ids)):
             raise InvalidData("Procedure IDs must be unique")
 
-        procedure_repo = self._procedure_repo
-        existing_ids = await procedure_repo.get_existing_procedure_ids(
+        procedures = await self._procedure_repo.get_procedures_by_ids(
             procedure_ids,
             active_only=True,
         )
-        missing_procedure_ids = set(procedure_ids) - existing_ids
-
+        missing_procedure_ids = set(procedure_ids) - {
+            procedure.id for procedure in procedures
+        }
         if missing_procedure_ids:
             raise NotFoundError("Procedure not found")
+
+        return procedures
+
+    @staticmethod
+    def _calculate_pricing(
+        procedure_ids: list[str],
+        procedures: list[ProcedureDTO],
+    ) -> tuple[dict[str, Decimal], Decimal]:
+        unit_prices = {
+            procedure.id: procedure.default_price for procedure in procedures
+        }
+        total_price = sum(
+            (unit_prices[procedure_id] for procedure_id in procedure_ids),
+            Decimal("0.00"),
+        )
+
+        return unit_prices, total_price

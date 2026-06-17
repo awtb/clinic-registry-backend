@@ -2,7 +2,7 @@ from clinic_registry.db.models.base import BaseModel
 from clinic_registry.db.models.log import Log
 from clinic_registry.db.models.medical_record import MedicalRecord
 from clinic_registry.db.models.medical_record_procedure import (
-    medical_record_procedures,
+    MedicalRecordProcedure,
 )
 from clinic_registry.db.models.patient import Patient
 from clinic_registry.db.models.procedure import Procedure
@@ -16,6 +16,6 @@ __all__ = [
     "ProcedureCategory",
     "Procedure",
     "MedicalRecord",
-    "medical_record_procedures",
+    "MedicalRecordProcedure",
     "Log",
 ]

@@ -88,19 +88,24 @@ class ProcedureRepository(BaseRepository):
         res = await self._session.execute(stmt)
         return bool(res.scalars().first())
 
-    async def get_existing_procedure_ids(
+    async def get_procedures_by_ids(
         self,
         procedure_ids: list[str],
         *,
         active_only: bool = False,
-    ) -> set[str]:
-        stmt = select(Procedure.id).where(Procedure.id.in_(procedure_ids))
+    ) -> list[ProcedureDTO]:
+        stmt = (
+            select(Procedure)
+            .where(Procedure.id.in_(procedure_ids))
+            .options(selectinload(Procedure.category))
+        )
 
         if active_only:
             stmt = stmt.where(Procedure.is_active.is_(True))
 
         res = await self._session.execute(stmt)
-        return set(res.scalars().all())
+        procedures = res.scalars().all()
+        return [procedure_to_dto(procedure) for procedure in procedures]
 
     async def code_exists(
         self,

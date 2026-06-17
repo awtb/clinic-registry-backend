@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+from decimal import Decimal
 
 from clinic_registry.core.dto.base import BaseDTO
 from clinic_registry.core.dto.patient import PatientDTO
@@ -25,6 +26,7 @@ class MedicalRecordDTO(BaseDTO):
     treatment: str
     procedure_ids: list[str]
     procedures: list[ProcedureDTO]
+    total_price: Decimal
     chief_complaint: str | None
     creator_id: str
     creator: UserDTO

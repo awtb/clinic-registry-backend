@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 
 from pydantic import Field
 
@@ -24,6 +25,7 @@ class RecordResponse(BaseSchema):
     treatment: str
     procedure_ids: list[str]
     procedures: list[ProcedureResponse]
+    total_price: Decimal
     chief_complaint: str | None
     creator_id: str
     creator: UserResponse

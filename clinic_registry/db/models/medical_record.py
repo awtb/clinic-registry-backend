@@ -1,7 +1,9 @@
 from datetime import datetime
+from decimal import Decimal
 
 from sqlalchemy import DateTime
 from sqlalchemy import ForeignKey
+from sqlalchemy import Numeric
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
@@ -10,10 +12,9 @@ from ulid import ULID
 
 from clinic_registry.db.models.base import BaseModel
 from clinic_registry.db.models.medical_record_procedure import (
-    medical_record_procedures,
+    MedicalRecordProcedure,
 )
 from clinic_registry.db.models.patient import Patient
-from clinic_registry.db.models.procedure import Procedure
 from clinic_registry.db.models.user import User
 
 
@@ -40,6 +41,13 @@ class MedicalRecord(BaseModel):
         DateTime(), nullable=False, default=datetime.now
     )
     chief_complaint: Mapped[str] = mapped_column(String(), nullable=True)
+    # Sum of the line items' snapshotted prices, frozen at creation and
+    # recomputed only when the record's procedures change.
+    total_price: Mapped[Decimal] = mapped_column(
+        Numeric(12, 2),
+        nullable=False,
+        default=Decimal("0.00"),
+    )
     creator_id: Mapped[str] = mapped_column(
         String(),
         ForeignKey("users.id"),
@@ -50,7 +58,7 @@ class MedicalRecord(BaseModel):
         "Patient",
         foreign_keys=[patient_id],
     )
-    procedures: Mapped[list[Procedure]] = relationship(
-        "Procedure",
-        secondary=medical_record_procedures,
+    line_items: Mapped[list[MedicalRecordProcedure]] = relationship(
+        "MedicalRecordProcedure",
+        cascade="all, delete-orphan",
     )
